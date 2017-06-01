@@ -35,22 +35,19 @@ function OnReady()
 {
   m_stats = new Stats();
   
-  m_renderer = PIXI.autoDetectRenderer(256, 256, {backgroundColor:0xFFFFFF});
-	m_stage = new PIXI.Stage(0xFFFFFF);
+  m_app = new PIXI.Application(window.innerWidth, window.innerHeight)
 
-	amount = (m_renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
+	amount = (m_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
 
 	if(amount == 5)
 	{
-		m_renderer.context.mozImageSmoothingEnabled = false
-		m_renderer.context.webkitImageSmoothingEnabled = false;
+		m_app.renderer.context.mozImageSmoothingEnabled = false
+		m_app.renderer.context.webkitImageSmoothingEnabled = false;
 	}
 	
-	m_renderer.view.style["transform"] = "translatez(0)";
-	document.body.appendChild(m_renderer.view);
-	m_renderer.view.style.position = "absolute";
-	
-	m_renderer.render(m_stage);
+	m_app.renderer.view.style["transform"] = "translatez(0)";
+	document.body.appendChild(m_app.view);
+	m_app.renderer.view.style.position = "absolute";
 	
 	m_counter = document.createElement("div");
 	m_counter.className = "counter";
@@ -69,7 +66,7 @@ function OnReady()
 	
 	Resize();
 	
-	requestAnimationFrame(Update);
+	m_app.ticker.add(Update);
 }
 
 function LoaderProgressHandler(loader, resource)
@@ -88,8 +85,7 @@ function LoaderSetup()
     tileTextureCache
   );
   
-  m_stage.addChild(sprite);
-  m_renderer.render(m_stage);
+  m_app.stage.addChild(sprite);
 }
 
 function Resize()
@@ -97,9 +93,9 @@ function Resize()
   width = window.innerWidth;
   height = window.innerHeight;
   
-  m_renderer.view.style.left = 0;
-  m_renderer.view.style.top = 0;
-  m_renderer.resize(width, height);
+  m_app.renderer.view.style.left = 0;
+  m_app.renderer.view.style.top = 0;
+  m_app.renderer.resize(width, height);
   
   m_counter.style.left = 100 + "px";
 	m_counter.style.top = 0 + "px";
@@ -120,15 +116,13 @@ function UpdateStage()
   sprite.x = (m_frameCounter * 3) % 128;
   sprite.y = (m_frameCounter * 7) % 128;
   
-  m_stage.addChild(sprite);
+  m_app.stage.addChild(sprite);
 }
 
 function Update()
 {
   m_stats.begin();
   UpdateStage();
-  m_renderer.render(m_stage);
-  requestAnimationFrame(Update);
   m_stats.end();
   m_frameCounter++;
 }
