@@ -105,12 +105,32 @@ function Resize()
 	m_counter.style.top = 0 + "px";
 }
 
+var m_frameCounter = 0;
+
+function UpdateStage()
+{
+  //console.log(m_frameCounter);
+  
+  var randomId = m_frameCounter % 128;
+  var textureName = "cityTiles_" + ("00" + randomId).slice(-3) + ".png";
+  
+  var tileTextureCache = PIXI.utils.TextureCache[textureName];
+  
+  var sprite = new PIXI.Sprite(tileTextureCache);
+  sprite.x = (m_frameCounter * 3) % 128;
+  sprite.y = (m_frameCounter * 7) % 128;
+  
+  m_stage.addChild(sprite);
+}
+
 function Update()
 {
   m_stats.begin();
+  UpdateStage();
   m_renderer.render(m_stage);
   requestAnimationFrame(Update);
   m_stats.end();
+  m_frameCounter++;
 }
 
 function readTextFile(file)
