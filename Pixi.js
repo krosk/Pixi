@@ -2,6 +2,11 @@
 //Called when application is started.
 function OnStart()
 {
+  var xmlSheet = readTextFile("Img/cityTiles_sheet.xml");
+  var jsonSheet = xmlToJsonAtlas(xmlSheet);
+  console.log(JSON.stringify(jsonSheet));
+  app.WriteFile( "Img/cityTiles_sheet.json", JSON.stringify(jsonSheet)  );
+  
 	//Create a layout with objects vertically centered.
 	lay = app.CreateLayout( "linear", "VCenter,FillXY" );	
 
@@ -57,12 +62,8 @@ function OnReady()
 	
 	document.body.appendChild(m_stats.domElement);
 	
-	var xmlSheet = readTextFile("Img/cityTiles_sheet.xml");
-  var jsonSheet = xmlToJsonAtlas(xmlSheet);
-  console.log(JSON.stringify(jsonSheet));
-	
 	PIXI.loader
-	  .add("Img/cityTiles_sheet.png")
+	  .add("Img/cityTiles_sheet.json")
 	  .on("progress", LoaderProgressHandler)
 	  .load(LoaderSetup);
 	
@@ -81,9 +82,9 @@ function LoaderSetup()
 {
   console.log("image loaded, testingScene" );
   
-  var tileTextureCache = PIXI.utils.TextureCache["Img/cityTiles_sheet.png"];
-  var rect = new PIXI.Rectangle(0, 234, 133, 133);
-  tileTextureCache.frame = rect;
+  var tileTextureCache = PIXI.utils.TextureCache["cityTiles_000.png"];
+  //var rect = new PIXI.Rectangle(0, 0, 133, 133);
+  //tileTextureCache.frame = rect;
   
   var sprite = new PIXI.Sprite(
     tileTextureCache
@@ -137,7 +138,6 @@ function readTextFile(file)
 function xmlToJsonAtlas(xmlString)
 {
   console.log("loading atlas");
-  alert(xmlString);
   var parser = new DOMParser();
   var xmlDoc = parser.parseFromString(xmlString,"text/xml");
   var masterXml = xmlDoc.getElementsByTagName("TextureAtlas")[0];
@@ -145,7 +145,7 @@ function xmlToJsonAtlas(xmlString)
   var collection = masterXml.childNodes;
   var textureCount = 0;
   
-  var jsonObj = JSON.parse('[]');
+  var framesJson = {};
   
   for (i = 0; i < collection.length; i++)
   {
@@ -167,32 +167,25 @@ function xmlToJsonAtlas(xmlString)
       pivot : { x : 0.5, y : 0.5 }
      };
      
-     var localJsonObj = {};
-     localJsonObj[path] = localJsonContent;
-     
-    jsonObj.push(localJsonObj);
+     framesJson[path] = localJsonContent;
     
     textureCount++;
   }
-  return jsonObj;
+  
+  var metaJson = { image : filePath };
+  
+  var atlasJson = { frames : framesJson, meta : metaJson };
+  return atlasJson;
 }
-/*
-"blob.png":
-{
-	"frame": {"x":55,"y":2,"w":32,"h":24},
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":24},
-	"sourceSize": {"w":32,"h":24},
-	"pivot": {"x":0.5,"y":0.5}
-},
-*/
 
 /*
-parser = new DOMParser();
-xmlDoc = parser.parseFromString(text,"text/xml");
-
-document.getElementById("demo").innerHTML =
-xmlDoc.getElementsByTagName("title")[0].childNodes[0].nodeValue;
-</script>
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "animals.png",
+	"format": "RGBA8888",
+	"size": {"w":200,"h":68},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:52586866875309c357a59ef94cc3e344:67b70cfeefc06c04b551ab33c8f1fc7a:b00d48b51f56eb7c81e25100fcce2828$"
+}
 */
