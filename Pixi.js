@@ -83,8 +83,6 @@ function LoaderSetup()
   console.log("image loaded, testingScene" );
   
   var tileTextureCache = PIXI.utils.TextureCache["cityTiles_000.png"];
-  //var rect = new PIXI.Rectangle(0, 0, 133, 133);
-  //tileTextureCache.frame = rect;
   
   var sprite = new PIXI.Sprite(
     tileTextureCache
@@ -127,7 +125,6 @@ function readTextFile(file)
             if(rawFile.status === 200 || rawFile.status == 0)
             {
                 allText = rawFile.responseText;
-                //alert(allText);
             }
         }
     }
@@ -177,15 +174,3 @@ function xmlToJsonAtlas(xmlString)
   var atlasJson = { frames : framesJson, meta : metaJson };
   return atlasJson;
 }
-
-/*
-"meta": {
-	"app": "http://www.codeandweb.com/texturepacker",
-	"version": "1.0",
-	"image": "animals.png",
-	"format": "RGBA8888",
-	"size": {"w":200,"h":68},
-	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:52586866875309c357a59ef94cc3e344:67b70cfeefc06c04b551ab33c8f1fc7a:b00d48b51f56eb7c81e25100fcce2828$"
-}
-*/
