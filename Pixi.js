@@ -105,6 +105,20 @@ function GetTextureName(id)
   return  "cityTiles_" + ("00" + id).slice(-3) + ".png";
 }
 
+function GetTileDisplayX(x, y)
+{
+  var textureBaseSizeX = 132;
+  var textureBaseSizeY = 68;
+  return textureBaseSizeX / 2 * x - textureBaseSizeX / 2 * y;
+}
+
+function GetTileDisplayY(x, y)
+{
+  var textureBaseSizeX = 132;
+  var textureBaseSizeY = 68;
+  return textureBaseSizeY / 2 * x + textureBaseSizeY / 2 * y;
+}
+
 function WaitingState()
 {
   // do nothing, wait for loader
@@ -133,8 +147,7 @@ function ContainerTestRenderState()
   var textureTableId = [0, 1, 2, 3, 4, 5, 6, 7];
   var textureTableX = 4;
   var textureTableY = 2;
-  var textureBaseSizeX = 132;
-  var textureBaseSizeY = 68;
+  
   
   if (typeof m_ContainerTest === 'undefined' || m_ContainerTest === null)
   {
@@ -155,8 +168,8 @@ function ContainerTestRenderState()
         //sprite.x = Math.floor(Math.random() * m_app.renderer.width);
         //sprite.y = Math.floor(Math.random() * m_app.renderer.height);
         
-        sprite.x = textureBaseSizeX / 2 * x - textureBaseSizeX / 2 * y;
-        sprite.y = textureBaseSizeY / 2 * x + textureBaseSizeY / 2 * y;
+        sprite.x = GetTileDisplayX(x, y);
+        sprite.y = GetTileDisplayY(x, y);
         
         m_ContainerTest.addChild(sprite);
       }
@@ -225,7 +238,7 @@ function xmlToJsonAtlas(xmlString)
       sourceSize : { w : w, h : h },
       rotated : false,
       trimmed : false,
-      pivot : { x : 0.5, y : 0.5 }
+      pivot : { x : 0, y : 0 }
      };
      
      framesJson[path] = localJsonContent;
