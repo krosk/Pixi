@@ -114,8 +114,8 @@ function UpdateStage()
   var tileTextureCache = PIXI.utils.TextureCache[textureName];
   
   var sprite = new PIXI.Sprite(tileTextureCache);
-  sprite.x = (m_frameCounter * 3) % 128;
-  sprite.y = (m_frameCounter * 7) % 128;
+  sprite.x = Math.floor(Math.random() * m_app.renderer.width);
+  sprite.y = Math.floor(Math.random() * m_app.renderer.height);
   
   m_app.stage.addChild(sprite);
 }
