@@ -35,7 +35,9 @@ function OnReady()
 {
   m_stats = new Stats();
   
-  m_app = new PIXI.Application(window.innerWidth, window.innerHeight)
+  m_app = new PIXI.Application(window.innerWidth, window.innerHeight);
+  
+  PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
 	amount = (m_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
 
@@ -155,6 +157,13 @@ function ContainerTestRenderState()
   {
     m_ContainerTest = new PIXI.Container();
     
+    m_ContainerTest.interactive = true;
+    
+    m_ContainerTest.on('pointerdown', onContainerDragStart);
+    m_ContainerTest.on('pointermove', onContainerDragMove);
+    m_ContainerTest.on('pointerupoutside', onContainerDragEnd);
+    m_ContainerTest.on('pointerup', onContainerDragEnd);
+    
     for (x = 0; x < textureTableX; x++)
     {
       for (y = 0; y < textureTableY; y++)
@@ -186,9 +195,40 @@ function ContainerTestRenderState()
     console.log(m_app.stage.height);
     console.log(m_app.renderer.height);
   }
-  
-  m_ContainerTest.position.x -= 1;
-  m_ContainerTest.position.y -= 1;
+}
+
+function onContainerDragStart(event)
+{
+    this.data = event.data;
+    this.alpha = 0.5;
+    this.dragging = true;
+    var newPosition = this.data.getLocalPosition(this.parent);
+    this.startX = this.x;
+    this.startY = this.y;
+    this.pointerStartX = newPosition.x;
+    this.pointerStartY = newPosition.y;
+}
+
+function onContainerDragEnd()
+{
+    this.alpha = 1;
+    this.dragging = false;
+    // set the interaction data to null
+    this.data = null;
+    this.startX = null;
+    this.startY = null;
+    this.pointerStartX = null;
+    this.pointerStartY = null;
+}
+
+function onContainerDragMove()
+{
+    if (this.dragging)
+    {
+        var newPosition = this.data.getLocalPosition(this.parent);
+        this.x = this.startX - this.pointerStartX + newPosition.x;
+        this.y = this.startY - this.pointerStartY + newPosition.y;
+    }
 }
 
 function Update()
