@@ -49,6 +49,9 @@ function OnReady()
 	document.body.appendChild(m_app.view);
 	m_app.renderer.view.style.position = "absolute";
 	
+	m_interactionManager = m_app.renderer.plugins.interaction;
+	console.log("touch " + m_interactionManager.supportsTouchEvents);
+	
 	m_counter = document.createElement("div");
 	m_counter.className = "counter";
 	m_counter.innerHTML = 0;
@@ -65,6 +68,8 @@ function OnReady()
 	  .load(LoaderSetup);
 	
 	Resize();
+	
+	m_state = TestRenderState;
 	
 	m_app.ticker.add(Update);
 }
@@ -104,7 +109,7 @@ function Resize()
 
 var m_frameCounter = 0;
 
-function UpdateStage()
+function TestRenderState()
 {
   //console.log(m_frameCounter);
   
@@ -123,7 +128,7 @@ function UpdateStage()
 function Update()
 {
   m_stats.begin();
-  UpdateStage();
+  m_state();
   m_stats.end();
   m_frameCounter++;
 }
