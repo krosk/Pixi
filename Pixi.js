@@ -131,8 +131,10 @@ function TestRenderState()
 function ContainerTestRenderState()
 {
   var textureTableId = [0, 1, 2, 3, 4, 5, 6, 7];
-  var textureTableX = 2;
-  var textureTableY = 4;
+  var textureTableX = 4;
+  var textureTableY = 2;
+  var textureBaseSizeX = 132;
+  var textureBaseSizeY = 68;
   
   if (typeof m_ContainerTest === 'undefined' || m_ContainerTest === null)
   {
@@ -150,14 +152,18 @@ function ContainerTestRenderState()
   
         var sprite = new PIXI.Sprite(tileTextureCache);
         
-        sprite.x = Math.floor(Math.random() * m_app.renderer.width);
-        sprite.y = Math.floor(Math.random() * m_app.renderer.height);
+        //sprite.x = Math.floor(Math.random() * m_app.renderer.width);
+        //sprite.y = Math.floor(Math.random() * m_app.renderer.height);
+        
+        sprite.x = textureBaseSizeX / 2 * x - textureBaseSizeX / 2 * y;
+        sprite.y = textureBaseSizeY / 2 * x + textureBaseSizeY / 2 * y;
         
         m_ContainerTest.addChild(sprite);
       }
     }
     
-    console.log(m_ContainerTest.children);
+    //m_ContainerTest.pivot.x = m_app.stage.width;
+    //m_ContainerTest.pivot.y = m_app.stage.height;
     
     m_app.stage.addChild(m_ContainerTest);
   }
