@@ -177,11 +177,18 @@ function ContainerTestRenderState()
       }
     }
     
-    //m_ContainerTest.pivot.x = m_app.stage.width;
-    //m_ContainerTest.pivot.y = m_app.stage.height;
-    
     m_app.stage.addChild(m_ContainerTest);
+    
+    console.log(m_ContainerTest.width);
+    console.log(m_app.stage.width);
+    console.log(m_app.renderer.width);
+    console.log(m_ContainerTest.height);
+    console.log(m_app.stage.height);
+    console.log(m_app.renderer.height);
   }
+  
+  m_ContainerTest.position.x -= 1;
+  m_ContainerTest.position.y -= 1;
 }
 
 function Update()
