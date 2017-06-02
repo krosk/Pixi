@@ -80,6 +80,7 @@ function LoaderSetup()
   console.log("image loaded, testingScene" );
   
   var tileTextureCache = PIXI.utils.TextureCache["cityTiles_000.png"];
+  tileTextureCache.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
   
   var sprite = new PIXI.Sprite(
     tileTextureCache
