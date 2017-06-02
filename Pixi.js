@@ -69,7 +69,7 @@ function OnReady()
 	
 	Resize();
 	
-	m_state = TestRenderState;
+	m_state = WaitingState;
 	
 	m_app.ticker.add(Update);
 }
@@ -84,14 +84,7 @@ function LoaderSetup()
 {
   console.log("image loaded, testingScene" );
   
-  var tileTextureCache = PIXI.utils.TextureCache["cityTiles_000.png"];
-  tileTextureCache.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-  
-  var sprite = new PIXI.Sprite(
-    tileTextureCache
-  );
-  
-  m_app.stage.addChild(sprite);
+  m_state = ContainerTestRenderState;
 }
 
 function Resize()
@@ -107,6 +100,16 @@ function Resize()
 	m_counter.style.top = 0 + "px";
 }
 
+function GetTextureName(id)
+{
+  return  "cityTiles_" + ("00" + id).slice(-3) + ".png";
+}
+
+function WaitingState()
+{
+  // do nothing, wait for loader
+}
+
 var m_frameCounter = 0;
 
 function TestRenderState()
@@ -114,7 +117,7 @@ function TestRenderState()
   //console.log(m_frameCounter);
   
   var randomId = m_frameCounter % 128;
-  var textureName = "cityTiles_" + ("00" + randomId).slice(-3) + ".png";
+  var textureName = GetTextureName(randomId);
   
   var tileTextureCache = PIXI.utils.TextureCache[textureName];
   
@@ -123,6 +126,41 @@ function TestRenderState()
   sprite.y = Math.floor(Math.random() * m_app.renderer.height);
   
   m_app.stage.addChild(sprite);
+}
+
+function ContainerTestRenderState()
+{
+  var textureTableId = [0, 1, 2, 3, 4, 5, 6, 7];
+  var textureTableX = 2;
+  var textureTableY = 4;
+  
+  if (typeof m_ContainerTest === 'undefined' || m_ContainerTest === null)
+  {
+    m_ContainerTest = new PIXI.Container();
+    
+    for (x = 0; x < textureTableX; x++)
+    {
+      for (y = 0; y < textureTableY; y++)
+      {
+        var i = x * textureTableY + y;
+        var id = textureTableId[i];
+        var textureName = GetTextureName(id);
+        
+        var tileTextureCache = PIXI.utils.TextureCache[textureName];
+  
+        var sprite = new PIXI.Sprite(tileTextureCache);
+        
+        sprite.x = Math.floor(Math.random() * m_app.renderer.width);
+        sprite.y = Math.floor(Math.random() * m_app.renderer.height);
+        
+        m_ContainerTest.addChild(sprite);
+      }
+    }
+    
+    console.log(m_ContainerTest.children);
+    
+    m_app.stage.addChild(m_ContainerTest);
+  }
 }
 
 function Update()
