@@ -105,18 +105,17 @@ function GetTextureName(id)
   return  "cityTiles_" + ("00" + id).slice(-3) + ".png";
 }
 
+var c_textureBaseSizeX = 130;
+var c_textureBaseSizeY = 66;
+
 function GetTileDisplayX(x, y)
 {
-  var textureBaseSizeX = 132;
-  var textureBaseSizeY = 68;
-  return textureBaseSizeX / 2 * x - textureBaseSizeX / 2 * y;
+  return c_textureBaseSizeX / 2 * x - c_textureBaseSizeX / 2 * y;
 }
 
 function GetTileDisplayY(x, y)
 {
-  var textureBaseSizeX = 132;
-  var textureBaseSizeY = 68;
-  return textureBaseSizeY / 2 * x + textureBaseSizeY / 2 * y;
+  return c_textureBaseSizeY / 2 * x + c_textureBaseSizeY / 2 * y;
 }
 
 function WaitingState()
@@ -144,10 +143,13 @@ function TestRenderState()
 
 function ContainerTestRenderState()
 {
-  var textureTableId = [0, 1, 2, 3, 4, 5, 6, 7];
-  var textureTableX = 4;
-  var textureTableY = 2;
-  
+  var textureTableId = [];
+  for (i = 0; i < 128; i++)
+  {
+    textureTableId[i] = i;
+  }
+  var textureTableX = 12;
+  var textureTableY = 10;
   
   if (typeof m_ContainerTest === 'undefined' || m_ContainerTest === null)
   {
@@ -169,7 +171,7 @@ function ContainerTestRenderState()
         //sprite.y = Math.floor(Math.random() * m_app.renderer.height);
         
         sprite.x = GetTileDisplayX(x, y);
-        sprite.y = GetTileDisplayY(x, y);
+        sprite.y = GetTileDisplayY(x, y) - sprite.height;
         
         m_ContainerTest.addChild(sprite);
       }
