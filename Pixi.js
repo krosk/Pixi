@@ -2,33 +2,31 @@
 //Called when application is started.
 function OnStart()
 {
-  var xmlSheet = readTextFile("Img/cityTiles_sheet.xml");
-  var jsonSheet = xmlToJsonAtlas(xmlSheet);
-  console.log(JSON.stringify(jsonSheet));
-  app.WriteFile( "Img/cityTiles_sheet.json", JSON.stringify(jsonSheet)  );
+    var xmlSheet = readTextFile( "Img/cityTiles_sheet.xml" );
+    var jsonSheet = xmlToJsonAtlas( xmlSheet );
+    //console.log( JSON.stringify( jsonSheet ));
+    app.WriteFile( "Img/cityTiles_sheet.json", JSON.stringify( jsonSheet ));
   
-	//Create a layout with objects vertically centered.
-	lay = app.CreateLayout( "linear", "VCenter,FillXY" );	
+  	//Create a layout with objects vertically centered.
+  	var lay = app.CreateLayout( "linear", "VCenter,FillXY" );	
 
-	m_web = app.CreateWebView( 1, 0.9 );
-	LoadHtmlWrapper();
-	lay.AddChild( m_web );
-	
-	//Add layout to app.	
-	app.AddLayout( lay );
+	  var web = app.CreateWebView( 1, 0.9 );
+  	loadHtmlWrapper(web);
+  	lay.AddChild( web );
+	  app.AddLayout( lay );
 }
 
-function LoadHtmlWrapper()
+function loadHtmlWrapper( webview )
 {
-	var html = "<html><head>";
-	html += "<meta name='viewport' content='width=device-width'>";
-	html += "</head><body>";
-	html += "<script src='Pixi.js'></script>";
-	html += "<script>document.addEventListener('DOMContentLoaded', OnReady)</script>";
-	html += "<script src='pixi.min.js'></script>";
-  html += "<script src='stats.min.js'></script>";
-	html += "</body></html>";
-	m_web.LoadHtml( html );
+  	var html = "<html><head>";
+  	html += "<meta name='viewport' content='width=device-width'>";
+  	html += "</head><body>";
+  	html += "<script src='Pixi.js'></script>";
+  	html += "<script>document.addEventListener('DOMContentLoaded', OnReady)</script>";
+  	html += "<script src='pixi.min.js'></script>";
+    html += "<script src='stats.min.js'></script>";
+  	html += "</body></html>";
+  	webview.LoadHtml( html );
 }
 
 function OnReady()
@@ -39,7 +37,7 @@ function OnReady()
   
   PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
-	amount = (m_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
+	var amount = (m_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
 
 	if(amount == 5)
 	{
@@ -86,7 +84,7 @@ function LoaderSetup()
 {
   console.log("image loaded, testingScene" );
   
-  m_state = ContainerTestRenderState;
+  m_state = MapRenderState;
 }
 
 function Resize()
@@ -143,7 +141,7 @@ function TestRenderState()
   m_app.stage.addChild(sprite);
 }
 
-function ContainerTestRenderState()
+function MapRenderState()
 {
   var textureTableId = [];
   for (i = 0; i < 128; i++)
@@ -153,16 +151,16 @@ function ContainerTestRenderState()
   var textureTableX = 12;
   var textureTableY = 10;
   
-  if (typeof m_ContainerTest === 'undefined' || m_ContainerTest === null)
+  if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
   {
-    m_ContainerTest = new PIXI.Container();
+    m_mapDisplay = new PIXI.Container();
     
-    m_ContainerTest.interactive = true;
+    m_mapDisplay.interactive = true;
     
-    m_ContainerTest.on('pointerdown', onContainerDragStart);
-    m_ContainerTest.on('pointermove', onContainerDragMove);
-    m_ContainerTest.on('pointerupoutside', onContainerDragEnd);
-    m_ContainerTest.on('pointerup', onContainerDragEnd);
+    m_mapDisplay.on('pointerdown', onMapDisplayDragStart);
+    m_mapDisplay.on('pointermove', onMapDisplayDragMove);
+    m_mapDisplay.on('pointerupoutside', onMapDisplayDragEnd);
+    m_mapDisplay.on('pointerup', onMapDisplayDragEnd);
     
     for (x = 0; x < textureTableX; x++)
     {
@@ -182,24 +180,24 @@ function ContainerTestRenderState()
         sprite.x = GetTileDisplayX(x, y);
         sprite.y = GetTileDisplayY(x, y) - sprite.height;
         
-        m_ContainerTest.addChild(sprite);
+        m_mapDisplay.addChild(sprite);
       }
     }
     
-    m_app.stage.addChild(m_ContainerTest);
+    m_app.stage.addChild(m_mapDisplay);
     
     /*
-    console.log(m_ContainerTest.width);
+    console.log(m_mapDisplay.width);
     console.log(m_app.stage.width);
     console.log(m_app.renderer.width);
-    console.log(m_ContainerTest.height);
+    console.log(m_mapDisplay.height);
     console.log(m_app.stage.height);
     console.log(m_app.renderer.height);
     */
   }
 }
 
-function ContainerDragCheck(_this)
+function MapDisplayDragCheck(_this)
 {
   if (typeof _this.touchData === 'undefined' || _this.touchData === null)
   {
@@ -212,9 +210,9 @@ function Distance(pos1, pos2)
   return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
 }
 
-function ContainerDragRefresh(_this)
+function MapDisplayDragRefresh(_this)
 {
-  ContainerDragCheck(_this);
+  MapDisplayDragCheck(_this);
   if (_this.touchData.length == 0)
   {
     _this.startX = null;
@@ -242,12 +240,12 @@ function ContainerDragRefresh(_this)
   }
 }
 
-function onContainerDragStart(event)
+function onMapDisplayDragStart(event)
 {
-  ContainerDragCheck(this);
+  MapDisplayDragCheck(this);
   this.touchData.push(event.data);
   console.log("added " + event.data.identifier);
-  ContainerDragRefresh(this);
+  MapDisplayDragRefresh(this);
   
   /*
     if (typeof this.firstTouchData === 'undefined' || this.firstTouchData === null)
@@ -269,19 +267,19 @@ function onContainerDragStart(event)
     */
 }
 
-function onContainerDragEnd(event)
+function onMapDisplayDragEnd(event)
 {
-  ContainerDragCheck(this);
+  MapDisplayDragCheck(this);
   var touchIndex = this.touchData.indexOf(event.data);
   if (touchIndex >= 0)
   {
     this.touchData.splice(touchIndex, 1);
   }
   console.log("removed " + event.data.identifier);
-  ContainerDragRefresh(this);
+  MapDisplayDragRefresh(this);
 }
 
-function onContainerDragMove()
+function onMapDisplayDragMove()
 {
   if (this.dragging)
   {
@@ -299,64 +297,68 @@ function Update()
   m_frameCounter++;
 }
 
-function readTextFile(file)
+function readTextFile( file )
 {
     var rawFile = new XMLHttpRequest();
     var allText = "";
-    rawFile.open("GET", file, false);
+    rawFile.open( "GET", file, false );
     rawFile.onreadystatechange = function ()
     {
-        if(rawFile.readyState === 4)
+        if ( rawFile.readyState === 4 )
         {
-            if(rawFile.status === 200 || rawFile.status == 0)
+            if ( rawFile.status === 200 || rawFile.status == 0 )
             {
                 allText = rawFile.responseText;
             }
         }
     }
-    rawFile.send(null);
+    rawFile.send( null );
     return allText;
 }
 
-function xmlToJsonAtlas(xmlString)
+function xmlToJsonAtlas( xmlString )
 {
-  console.log("loading atlas");
-  var parser = new DOMParser();
-  var xmlDoc = parser.parseFromString(xmlString,"text/xml");
-  var masterXml = xmlDoc.getElementsByTagName("TextureAtlas")[0];
-  var filePath = masterXml.attributes["imagePath"].value;
-  var collection = masterXml.childNodes;
-  var textureCount = 0;
+    console.log( "loading atlas" );
+    var parser = new DOMParser();
+    var xmlDoc = parser.parseFromString( xmlString,"text/xml" );
+    var masterXml = xmlDoc.getElementsByTagName( "TextureAtlas" )[0];
+    var filePath = masterXml.attributes["imagePath"].value;
+    var collection = masterXml.childNodes;
+    var textureCount = 0;
   
-  var framesJson = {};
+    var framesJson = {};
   
-  for (i = 0; i < collection.length; i++)
-  {
-    var spriteNode = collection.item(i);
-    if (spriteNode.nodeName != "SubTexture")
-      continue;
-    var path = spriteNode.attributes["name"].value;
-    var x = parseInt(spriteNode.attributes["x"].value);
-    var y = parseInt(spriteNode.attributes["y"].value);
-    var w = parseInt(spriteNode.attributes["width"].value);
-    var h = parseInt(spriteNode.attributes["height"].value);
+    for ( i = 0; i < collection.length; i++ )
+    {
+        var spriteNode = collection.item( i );
+        if (spriteNode.nodeName != "SubTexture")
+        {
+            continue;
+        }
+        var path = spriteNode.attributes["name"].value;
+        var x = parseInt( spriteNode.attributes["x"].value );
+        var y = parseInt( spriteNode.attributes["y"].value );
+        var w = parseInt( spriteNode.attributes["width"].value );
+        var h = parseInt( spriteNode.attributes["height"].value );
     
-    var localJsonContent = {
-      frame : { x : x, y : y, w : w, h : h },
-      spriteSourceSize : { x : 0, y : 0, w: w, h : h },
-      sourceSize : { w : w, h : h },
-      rotated : false,
-      trimmed : false,
-      pivot : { x : 0, y : 0 }
-     };
-     
-     framesJson[path] = localJsonContent;
+        var localJsonContent =
+        {
+            frame : { x : x, y : y, w : w, h : h },
+            spriteSourceSize : { x : 0, y : 0, w: w, h : h },
+            sourceSize : { w : w, h : h },
+            rotated : false,
+            trimmed : false,
+            pivot : { x : 0, y : 0 }
+        };
     
-    textureCount++;
-  }
+        framesJson[path] = localJsonContent;
+    
+        textureCount++;
+    }
   
-  var metaJson = { image : filePath };
+    var metaJson = { image : filePath };
   
-  var atlasJson = { frames : framesJson, meta : metaJson };
-  return atlasJson;
+    var atlasJson = { frames : framesJson, meta : metaJson };
+  
+    return atlasJson;
 }
