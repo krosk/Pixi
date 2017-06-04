@@ -188,47 +188,107 @@ function ContainerTestRenderState()
     
     m_app.stage.addChild(m_ContainerTest);
     
+    /*
     console.log(m_ContainerTest.width);
     console.log(m_app.stage.width);
     console.log(m_app.renderer.width);
     console.log(m_ContainerTest.height);
     console.log(m_app.stage.height);
     console.log(m_app.renderer.height);
+    */
+  }
+}
+
+function ContainerDragCheck(_this)
+{
+  if (typeof _this.touchData === 'undefined' || _this.touchData === null)
+  {
+    _this.touchData = [];
+  }
+}
+
+function Distance(pos1, pos2)
+{
+  return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
+}
+
+function ContainerDragRefresh(_this)
+{
+  ContainerDragCheck(_this);
+  if (_this.touchData.length == 0)
+  {
+    _this.startX = null;
+    _this.startY = null;
+    _this.pointerStartX = null;
+    _this.pointerStartY = null;
+    _this.dragging = false;
+  }
+  if (_this.touchData.length > 0)
+  {
+    var newPosition = _this.touchData[0].getLocalPosition(_this.parent);
+    _this.startX = _this.x;
+    _this.startY = _this.y;
+    _this.pointerStartX = newPosition.x;
+    _this.pointerStartY = newPosition.y;
+    _this.startScale = _this.scale;
+    _this.startDistance = 0;
+    _this.dragging = true;
+  }
+  if (_this.touchData.length > 1)
+  {
+    var pos1 = _this.touchData[0].getLocalPosition(_this.parent);
+    var pos2 = _this.touchData[1].getLocalPosition(_this.parent);
+    _this.startDistance = Distance(pos1, pos2);
   }
 }
 
 function onContainerDragStart(event)
 {
-    this.data = event.data;
-    this.alpha = 0.5;
-    this.dragging = true;
-    var newPosition = this.data.getLocalPosition(this.parent);
-    this.startX = this.x;
-    this.startY = this.y;
-    this.pointerStartX = newPosition.x;
-    this.pointerStartY = newPosition.y;
+  ContainerDragCheck(this);
+  this.touchData.push(event.data);
+  console.log("added " + event.data.identifier);
+  ContainerDragRefresh(this);
+  
+  /*
+    if (typeof this.firstTouchData === 'undefined' || this.firstTouchData === null)
+    {
+      this.firstTouchData = event.data;
+      this.dragging = true;
+      this.alpha = 0.5;
+      var newPosition = this.firstTouchData.getLocalPosition(this.parent);
+      this.startX = this.x;
+      this.startY = this.y;
+      this.pointerStartX = newPosition.x;
+      this.pointerStartY = newPosition.y;
+    }
+    else if (typeof secondTouchData === 'undefined' || this.secondTouchData === null)
+    {
+      this.secondTouchData = event.data;
+      this.zooming = true;
+    }
+    */
 }
 
-function onContainerDragEnd()
+function onContainerDragEnd(event)
 {
-    this.alpha = 1;
-    this.dragging = false;
-    // set the interaction data to null
-    this.data = null;
-    this.startX = null;
-    this.startY = null;
-    this.pointerStartX = null;
-    this.pointerStartY = null;
+  ContainerDragCheck(this);
+  var touchIndex = this.touchData.indexOf(event.data);
+  if (touchIndex >= 0)
+  {
+    this.touchData.splice(touchIndex, 1);
+  }
+  console.log("removed " + event.data.identifier);
+  ContainerDragRefresh(this);
 }
 
 function onContainerDragMove()
 {
-    if (this.dragging)
-    {
-        var newPosition = this.data.getLocalPosition(this.parent);
-        this.x = this.startX - this.pointerStartX + newPosition.x;
-        this.y = this.startY - this.pointerStartY + newPosition.y;
-    }
+  if (this.dragging)
+  {
+    var newPosition = this.touchData[0].getLocalPosition(this.parent);
+    this.x = this.startX - this.pointerStartX + newPosition.x;
+    this.y = this.startY - this.pointerStartY + newPosition.y;
+  }
 }
 
 function Update()
