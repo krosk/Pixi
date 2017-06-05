@@ -148,7 +148,7 @@ public.MapRenderState = function()
   {
     textureTableId[i] = i;
   }
-  var textureTableX = 12;
+  var textureTableX = 10;
   var textureTableY = 10;
   
   if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
@@ -233,20 +233,37 @@ var mapDisplayDragRefresh = function ( _this )
   }
   if ( _this.touchData.length > 0 )
   {
-    var newPosition = _this.touchData[0].getLocalPosition( _this.parent );
-    _this.startX = _this.x;
-    _this.startY = _this.y;
-    _this.pointerStartX = newPosition.x;
-    _this.pointerStartY = newPosition.y;
-    _this.startScale = _this.scale;
-    _this.startDistance = 0;
+    var pointerPositionOnScreen = _this.touchData[0].getLocalPosition( _this.parent );
+    _this.startPointerScreenX = pointerPositionOnScreen.x;
+    _this.startPointerScreenY = pointerPositionOnScreen.y;
+    _this.startPivotSpriteX = _this.pivot.x;
+    _this.startPivotSpriteY = _this.pivot.y;
+    _this.startSpriteScreenX = _this.x;
+    _this.startSpriteScreenY = _this.y;
+    
+    // pivot is put on the touched location of sprite
+    _this.pivot.x = _this.startPointerScreenX - _this.startSpriteScreenX + _this.startPivotSpriteX;
+    _this.pivot.y = _this.startPointerScreenY - _this.startSpriteScreenY + _this.startPivotSpriteY;
+    
+    //_this.x = _this.startSpriteScreenX + _this.pivot.x - _this.startPivotSpriteX;
+    //_this.y = _this.startSpriteScreenY + _this.pivot.y - _this.startPivotSpriteY;
+    _this.x = _this.startPointerScreenX;
+    _this.y = _this.startPointerScreenY;
+    
     _this.dragging = true;
+    
+    //console.log(_this.startPointerScreenX);
+    //console.log(_this.startPointerScreenY);
+    //console.log(_this.startPivotSpriteX);
+    //console.log(_this.startPivotSpriteY);
+    //console.log(_this.startSpriteScreenX);
+    //console.log(_this.startSpriteScreenY);
   }
   if ( _this.touchData.length > 1 )
   {
     var pos1 = _this.touchData[0].getLocalPosition( _this.parent );
     var pos2 = _this.touchData[1].getLocalPosition( _this.parent );
-    _this.startDistance = getDiistanceBetween(pos1, pos2);
+    _this.startDistance = getDistanceBetween(pos1, pos2);
   }
 }
 
@@ -256,25 +273,6 @@ var onMapDisplayDragStart = function ( event )
   this.touchData.push( event.data );
   console.log( "added " + event.data.identifier );
   mapDisplayDragRefresh( this );
-  
-  /*
-    if (typeof this.firstTouchData === 'undefined' || this.firstTouchData === null)
-    {
-      this.firstTouchData = event.data;
-      this.dragging = true;
-      this.alpha = 0.5;
-      var newPosition = this.firstTouchData.getLocalPosition(this.parent);
-      this.startX = this.x;
-      this.startY = this.y;
-      this.pointerStartX = newPosition.x;
-      this.pointerStartY = newPosition.y;
-    }
-    else if (typeof secondTouchData === 'undefined' || this.secondTouchData === null)
-    {
-      this.secondTouchData = event.data;
-      this.zooming = true;
-    }
-    */
 }
 
 var onMapDisplayDragEnd = function ( event )
@@ -291,12 +289,14 @@ var onMapDisplayDragEnd = function ( event )
 
 var onMapDisplayDragMove = function()
 {
-  if ( this.dragging )
-  {
-    var newPosition = this.touchData[0].getLocalPosition(this.parent);
-    this.x = this.startX - this.pointerStartX + newPosition.x;
-    this.y = this.startY - this.pointerStartY + newPosition.y;
-  }
+    if ( this.dragging )
+    {
+        //console.log('move');
+        var newPosition = this.touchData[0].getLocalPosition( this.parent );
+        // upon dragging, pivot does not move
+        this.x = newPosition.x - this.startPointerScreenX + this.startPointerScreenX;
+        this.y = newPosition.y - this.startPointerScreenY + this.startPointerScreenY;
+    }
 }
     
     return public;
