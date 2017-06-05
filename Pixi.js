@@ -35,7 +35,7 @@ function OnReady()
   
   g_app = new PIXI.Application(window.innerWidth, window.innerHeight);
   
-  PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+  //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
 	var amount = (g_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
 
@@ -83,7 +83,7 @@ function LoaderProgressHandler(loader, resource)
 function LoaderSetup()
 {
   console.log("image loaded, testingScene" );
-  
+  MMAPDATA.Initialize();
   g_state = MMAPRENDER.MapRenderState;
 }
 
@@ -132,6 +132,39 @@ function TestRenderState()
   g_app.stage.addChild(sprite);
 }
 
+var MMAPDATA = (function ()
+{
+    var public = {};
+    
+    var m_mapTableData = [];
+    var m_mapTableSizeX = 0;
+    var m_mapTableSizeY = 0;
+    
+    public.GetMapTableData = function()
+    {
+        return m_mapTableData;
+    }
+    public.GetMapTableSizeX = function()
+    {
+        return m_mapTableSizeX;
+    }
+    public.GetMapTableSizeY = function()
+    {
+        return m_mapTableSizeY;
+    }
+    public.Initialize = function()
+    {
+        for ( var i = 0; i < 128; i++ )
+        {
+            m_mapTableData[i] = i;
+        }
+        m_mapTableSizeX = 10;
+        m_mapTableSizeY = 10;
+    }
+    
+    return public;
+})();
+
 var MMAPRENDER = (function ()
 {
     var public = {};
@@ -143,14 +176,6 @@ var MMAPRENDER = (function ()
     
 public.MapRenderState = function()
 {
-  var textureTableId = [];
-  for (i = 0; i < 128; i++)
-  {
-    textureTableId[i] = i;
-  }
-  var textureTableX = 10;
-  var textureTableY = 10;
-  
   if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
   {
     m_mapDisplay = new PIXI.Container();
@@ -162,9 +187,12 @@ public.MapRenderState = function()
     m_mapDisplay.on('pointerupoutside', onMapDisplayDragEnd);
     m_mapDisplay.on('pointerup', onMapDisplayDragEnd);
     
-    for (x = 0; x < textureTableX; x++)
+    var textureTableX = MMAPDATA.GetMapTableSizeX();
+    var textureTableY = MMAPDATA.GetMapTableSizeY();
+    var textureTableId = MMAPDATA.GetMapTableData();
+    for (var x = 0; x < textureTableX; x++)
     {
-      for (y = 0; y < textureTableY; y++)
+      for (var y = 0; y < textureTableY; y++)
       {
         var i = x * textureTableY + y;
         var id = textureTableId[i];
