@@ -174,9 +174,6 @@ public.MapRenderState = function()
   
         var sprite = new PIXI.Sprite(tileTextureCache);
         
-        //sprite.x = Math.floor(Math.random() * g_app.renderer.width);
-        //sprite.y = Math.floor(Math.random() * g_app.renderer.height);
-        
         sprite.x = getTileDisplayX(x, y);
         sprite.y = getTileDisplayY(x, y) - sprite.height;
         
@@ -185,39 +182,30 @@ public.MapRenderState = function()
     }
     
     g_app.stage.addChild(m_mapDisplay);
-    
-    /*
-    console.log(m_mapDisplay.width);
-    console.log(g_app.stage.width);
-    console.log(g_app.renderer.width);
-    console.log(m_mapDisplay.height);
-    console.log(g_app.stage.height);
-    console.log(g_app.renderer.height);
-    */
   }
 }
 
 var getTileDisplayX = function (x, y)
 {
-  return TEXTURE_BASE_SIZE_X / 2 * x - TEXTURE_BASE_SIZE_X / 2 * y;
+    return TEXTURE_BASE_SIZE_X / 2 * x - TEXTURE_BASE_SIZE_X / 2 * y;
 }
 
 var getTileDisplayY = function (x, y)
 {
-  return TEXTURE_BASE_SIZE_Y / 2 * x + TEXTURE_BASE_SIZE_Y / 2 * y;
+    return TEXTURE_BASE_SIZE_Y / 2 * x + TEXTURE_BASE_SIZE_Y / 2 * y;
 }
 
 var mapDisplayDragCheck = function ( _this )
 {
-  if (typeof _this.touchData === 'undefined' || _this.touchData === null)
-  {
-    _this.touchData = [];
-  }
+    if (typeof _this.touchData === 'undefined' || _this.touchData === null)
+    {
+        _this.touchData = [];
+    }
 }
 
 var getDistanceBetween = function ( pos1, pos2 )
 {
-  return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
+    return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
 }
 
 var mapDisplayDragRefresh = function ( _this )
@@ -225,45 +213,50 @@ var mapDisplayDragRefresh = function ( _this )
   mapDisplayDragCheck( _this );
   if ( _this.touchData.length == 0 )
   {
-    _this.dragging = false;
-    _this.zooming = false;
+    _this.dragging = null;
+    _this.zooming = null;
+    _this.startScaleX = null;
+    _this.startScaleY = null;
+    _this.startDistance = null;
   }
   if ( _this.touchData.length > 0 )
   {
     var pointerPositionOnScreen = _this.touchData[0].getLocalPosition( _this.parent );
-    _this.startPointerScreenX = pointerPositionOnScreen.x;
-    _this.startPointerScreenY = pointerPositionOnScreen.y;
-    _this.startUnscaledPivotSpriteX = _this.pivot.x;
-    _this.startUnscaledPivotSpriteY = _this.pivot.y;
-    _this.startUnscaledSpriteScreenX = _this.x;
-    _this.startUnscaledSpriteScreenY = _this.y;
+    
+    // touched screen location
+    var startPointerScreenX = pointerPositionOnScreen.x;
+    var startPointerScreenY = pointerPositionOnScreen.y;
+    
+    // initial image center
+    var startUnscaledPivotSpriteX = _this.pivot.x;
+    var startUnscaledPivotSpriteY = _this.pivot.y;
+    
+    // initial image position
+    var startUnscaledSpriteScreenX = _this.x;
+    var startUnscaledSpriteScreenY = _this.y;
+    
+    // initial origin point
+    var startUnscaledOriginX = startUnscaledSpriteScreenX - startUnscaledPivotSpriteX;
+    var startUnscaledOriginY = startUnscaledSpriteScreenY - startUnscaledPivotSpriteY;
+    
+    // remember initial scale
     _this.startScaleX = _this.scale.x;
     _this.startScaleY = _this.scale.y;
-    _this.startUnscaledOriginX = _this.startUnscaledSpriteScreenX - _this.startUnscaledPivotSpriteX;
-    _this.startUnscaledOriginY = _this.startUnscaledSpriteScreenY - _this.startUnscaledPivotSpriteY;
-    
-    _this.startPointerScaledX = (_this.startPointerScreenX - _this.startUnscaledSpriteScreenX) / _this.startScaleX + _this.startUnscaledSpriteScreenX;
-    _this.startPointerScaledY = (_this.startPointerScreenY - _this.startUnscaledSpriteScreenY) / _this.startScaleY + _this.startUnscaledSpriteScreenY;
+   
+    var startPointerScaledX = (startPointerScreenX - startUnscaledSpriteScreenX) / _this.startScaleX + startUnscaledSpriteScreenX;
+    var startPointerScaledY = (startPointerScreenY - startUnscaledSpriteScreenY) / _this.startScaleY + startUnscaledSpriteScreenY;
     
     // sprite center (pivot) is put on the touched location of sprite
-    _this.pivot.x = _this.startPointerScaledX - _this.startUnscaledOriginX;
-    _this.pivot.y = _this.startPointerScaledY - _this.startUnscaledOriginY;
+    _this.pivot.x = startPointerScaledX - startUnscaledOriginX;
+    _this.pivot.y = startPointerScaledY - startUnscaledOriginY;
     
     // sprite position, relative to sprite center, is set to the touched location
-    _this.x = _this.startPointerScreenX;
-    _this.y = _this.startPointerScreenY;
+    _this.x = startPointerScreenX;
+    _this.y = startPointerScreenY;
     
     _this.dragging = true;
     _this.zooming = false;
-    
-    //console.log(_this.startPointerScreenX);
-    //console.log(_this.startPointerScreenY);
-    //console.log(_this.startUnscaledPivotSpriteX);
-    //console.log(_this.startUnscaledPivotSpriteY);
-    //console.log(_this.startUnscaledSpriteScreenX);
-    //console.log(_this.startUnscaledSpriteScreenY);
-    //console.log(_this.startUnscaledOriginX);
-    //console.log(_this.startUnscaledOriginY);
+    _this.startDistance = 0;
   }
   if ( _this.touchData.length > 1 )
   {
@@ -300,9 +293,9 @@ var onMapDisplayDragMove = function()
     {
         //console.log('move');
         var newPosition = this.touchData[0].getLocalPosition( this.parent );
-        // upon dragging, pivot does not move
-        this.x = newPosition.x - this.startPointerScreenX + this.startPointerScreenX;
-        this.y = newPosition.y - this.startPointerScreenY + this.startPointerScreenY;
+        // upon dragging, image center is always below finger
+        this.x = newPosition.x;
+        this.y = newPosition.y;
     }
     if ( this.zooming )
     {
