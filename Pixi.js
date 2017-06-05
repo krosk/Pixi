@@ -31,36 +31,36 @@ function loadHtmlWrapper( webview )
 
 function OnReady()
 {
-  m_stats = new Stats();
+  g_stats = new Stats();
   
-  m_app = new PIXI.Application(window.innerWidth, window.innerHeight);
+  g_app = new PIXI.Application(window.innerWidth, window.innerHeight);
   
   PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
-	var amount = (m_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
+	var amount = (g_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
 
-	if(amount == 5)
+	if ( amount == 5 )
 	{
-		m_app.renderer.context.mozImageSmoothingEnabled = false
-		m_app.renderer.context.webkitImageSmoothingEnabled = false;
+		g_app.renderer.context.mozImageSmoothingEnabled = false
+		g_app.renderer.context.webkitImageSmoothingEnabled = false;
 	}
 	
-	m_app.renderer.view.style["transform"] = "translatez(0)";
-	document.body.appendChild(m_app.view);
-	m_app.renderer.view.style.position = "absolute";
+	g_app.renderer.view.style["transform"] = "translatez(0)";
+	document.body.appendChild(g_app.view);
+	g_app.renderer.view.style.position = "absolute";
 	
-	m_interactionManager = m_app.renderer.plugins.interaction;
-	console.log("touch " + m_interactionManager.supportsTouchEvents);
+	g_interactionManager = g_app.renderer.plugins.interaction;
+	console.log("touch " + g_interactionManager.supportsTouchEvents);
 	
-	m_counter = document.createElement("div");
-	m_counter.className = "counter";
-	m_counter.innerHTML = 0;
-	m_counter.style.position = "absolute";
-	m_counter.style.color = "#0ff";
-	m_counter.style.fontSize = "16px";
-	document.body.appendChild(m_counter);
+	g_counter = document.createElement("div");
+	g_counter.className = "counter";
+	g_counter.innerHTML = 0;
+	g_counter.style.position = "absolute";
+	g_counter.style.color = "#0ff";
+	g_counter.style.fontSize = "16px";
+	document.body.appendChild(g_counter);
 	
-	document.body.appendChild(m_stats.domElement);
+	document.body.appendChild(g_stats.domElement);
 	
 	PIXI.loader
 	  .add("Img/cityTiles_sheet.json")
@@ -69,9 +69,9 @@ function OnReady()
 	
 	Resize();
 	
-	m_state = WaitingState;
+	g_state = WaitingState;
 	
-	m_app.ticker.add(Update);
+	g_app.ticker.add(Update);
 }
 
 function LoaderProgressHandler(loader, resource)
@@ -84,20 +84,20 @@ function LoaderSetup()
 {
   console.log("image loaded, testingScene" );
   
-  m_state = MMAPRENDER.MapRenderState;
+  g_state = MMAPRENDER.MapRenderState;
 }
 
 function Resize()
 {
-  width = window.innerWidth;
-  height = window.innerHeight;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
   
-  m_app.renderer.view.style.left = 0;
-  m_app.renderer.view.style.top = 0;
-  m_app.renderer.resize(width, height);
+  g_app.renderer.view.style.left = 0;
+  g_app.renderer.view.style.top = 0;
+  g_app.renderer.resize(width, height);
   
-  m_counter.style.left = 100 + "px";
-	m_counter.style.top = 0 + "px";
+  g_counter.style.left = 100 + "px";
+	g_counter.style.top = 0 + "px";
 }
 
 function GetTextureName(id)
@@ -123,27 +123,29 @@ function WaitingState()
   // do nothing, wait for loader
 }
 
-var m_frameCounter = 0;
+var g_frameCounter = 0;
 
 function TestRenderState()
 {
-  //console.log(m_frameCounter);
+  //console.log(g_frameCounter);
   
-  var randomId = m_frameCounter % 128;
+  var randomId = g_frameCounter % 128;
   var textureName = GetTextureName(randomId);
   
   var tileTextureCache = PIXI.utils.TextureCache[textureName];
   
   var sprite = new PIXI.Sprite(tileTextureCache);
-  sprite.x = Math.floor(Math.random() * m_app.renderer.width);
-  sprite.y = Math.floor(Math.random() * m_app.renderer.height);
+  sprite.x = Math.floor(Math.random() * g_app.renderer.width);
+  sprite.y = Math.floor(Math.random() * g_app.renderer.height);
   
-  m_app.stage.addChild(sprite);
+  g_app.stage.addChild(sprite);
 }
 
 var MMAPRENDER = (function ()
 {
     var public = {};
+    
+    var m_mapDisplay = null;
     
 public.MapRenderState = function()
 {
@@ -178,8 +180,8 @@ public.MapRenderState = function()
   
         var sprite = new PIXI.Sprite(tileTextureCache);
         
-        //sprite.x = Math.floor(Math.random() * m_app.renderer.width);
-        //sprite.y = Math.floor(Math.random() * m_app.renderer.height);
+        //sprite.x = Math.floor(Math.random() * g_app.renderer.width);
+        //sprite.y = Math.floor(Math.random() * g_app.renderer.height);
         
         sprite.x = GetTileDisplayX(x, y);
         sprite.y = GetTileDisplayY(x, y) - sprite.height;
@@ -188,15 +190,15 @@ public.MapRenderState = function()
       }
     }
     
-    m_app.stage.addChild(m_mapDisplay);
+    g_app.stage.addChild(m_mapDisplay);
     
     /*
     console.log(m_mapDisplay.width);
-    console.log(m_app.stage.width);
-    console.log(m_app.renderer.width);
+    console.log(g_app.stage.width);
+    console.log(g_app.renderer.width);
     console.log(m_mapDisplay.height);
-    console.log(m_app.stage.height);
-    console.log(m_app.renderer.height);
+    console.log(g_app.stage.height);
+    console.log(g_app.renderer.height);
     */
   }
 }
@@ -298,10 +300,10 @@ var onMapDisplayDragMove = function()
 
 function Update()
 {
-  m_stats.begin();
-  m_state();
-  m_stats.end();
-  m_frameCounter++;
+  g_stats.begin();
+  g_state();
+  g_stats.end();
+  g_frameCounter++;
 }
 
 var MUTILS = (function ()
