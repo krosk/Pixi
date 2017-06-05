@@ -225,45 +225,52 @@ var mapDisplayDragRefresh = function ( _this )
   mapDisplayDragCheck( _this );
   if ( _this.touchData.length == 0 )
   {
-    _this.startX = null;
-    _this.startY = null;
-    _this.pointerStartX = null;
-    _this.pointerStartY = null;
     _this.dragging = false;
+    _this.zooming = false;
   }
   if ( _this.touchData.length > 0 )
   {
     var pointerPositionOnScreen = _this.touchData[0].getLocalPosition( _this.parent );
     _this.startPointerScreenX = pointerPositionOnScreen.x;
     _this.startPointerScreenY = pointerPositionOnScreen.y;
-    _this.startPivotSpriteX = _this.pivot.x;
-    _this.startPivotSpriteY = _this.pivot.y;
-    _this.startSpriteScreenX = _this.x;
-    _this.startSpriteScreenY = _this.y;
+    _this.startUnscaledPivotSpriteX = _this.pivot.x;
+    _this.startUnscaledPivotSpriteY = _this.pivot.y;
+    _this.startUnscaledSpriteScreenX = _this.x;
+    _this.startUnscaledSpriteScreenY = _this.y;
+    _this.startScaleX = _this.scale.x;
+    _this.startScaleY = _this.scale.y;
+    _this.startUnscaledOriginX = _this.startUnscaledSpriteScreenX - _this.startUnscaledPivotSpriteX;
+    _this.startUnscaledOriginY = _this.startUnscaledSpriteScreenY - _this.startUnscaledPivotSpriteY;
     
-    // pivot is put on the touched location of sprite
-    _this.pivot.x = _this.startPointerScreenX - _this.startSpriteScreenX + _this.startPivotSpriteX;
-    _this.pivot.y = _this.startPointerScreenY - _this.startSpriteScreenY + _this.startPivotSpriteY;
+    _this.startPointerScaledX = (_this.startPointerScreenX - _this.startUnscaledSpriteScreenX) / _this.startScaleX + _this.startUnscaledSpriteScreenX;
+    _this.startPointerScaledY = (_this.startPointerScreenY - _this.startUnscaledSpriteScreenY) / _this.startScaleY + _this.startUnscaledSpriteScreenY;
     
-    //_this.x = _this.startSpriteScreenX + _this.pivot.x - _this.startPivotSpriteX;
-    //_this.y = _this.startSpriteScreenY + _this.pivot.y - _this.startPivotSpriteY;
+    // sprite center (pivot) is put on the touched location of sprite
+    _this.pivot.x = _this.startPointerScaledX - _this.startUnscaledOriginX;
+    _this.pivot.y = _this.startPointerScaledY - _this.startUnscaledOriginY;
+    
+    // sprite position, relative to sprite center, is set to the touched location
     _this.x = _this.startPointerScreenX;
     _this.y = _this.startPointerScreenY;
     
     _this.dragging = true;
+    _this.zooming = false;
     
     //console.log(_this.startPointerScreenX);
     //console.log(_this.startPointerScreenY);
-    //console.log(_this.startPivotSpriteX);
-    //console.log(_this.startPivotSpriteY);
-    //console.log(_this.startSpriteScreenX);
-    //console.log(_this.startSpriteScreenY);
+    //console.log(_this.startUnscaledPivotSpriteX);
+    //console.log(_this.startUnscaledPivotSpriteY);
+    //console.log(_this.startUnscaledSpriteScreenX);
+    //console.log(_this.startUnscaledSpriteScreenY);
+    //console.log(_this.startUnscaledOriginX);
+    //console.log(_this.startUnscaledOriginY);
   }
   if ( _this.touchData.length > 1 )
   {
     var pos1 = _this.touchData[0].getLocalPosition( _this.parent );
     var pos2 = _this.touchData[1].getLocalPosition( _this.parent );
-    _this.startDistance = getDistanceBetween(pos1, pos2);
+    _this.startDistance = getDistanceBetween( pos1, pos2 );
+    _this.zooming = true;
   }
 }
 
@@ -296,6 +303,15 @@ var onMapDisplayDragMove = function()
         // upon dragging, pivot does not move
         this.x = newPosition.x - this.startPointerScreenX + this.startPointerScreenX;
         this.y = newPosition.y - this.startPointerScreenY + this.startPointerScreenY;
+    }
+    if ( this.zooming )
+    {
+        var position1 = this.touchData[0].getLocalPosition( this.parent );
+        var position2 = this.touchData[1].getLocalPosition( this.parent );
+        var newDistance = getDistanceBetween( position1, position2 );
+        var ratio = newDistance / this.startDistance;
+        this.scale.x = this.startScaleX * ratio;
+        this.scale.y = this.startScaleY * ratio;
     }
 }
     
