@@ -84,7 +84,7 @@ function LoaderSetup()
 {
   console.log("image loaded, testingScene" );
   
-  m_state = MapRenderState;
+  m_state = MMAPRENDER.MapRenderState;
 }
 
 function Resize()
@@ -141,7 +141,11 @@ function TestRenderState()
   m_app.stage.addChild(sprite);
 }
 
-function MapRenderState()
+var MMAPRENDER = (function ()
+{
+    var public = {};
+    
+public.MapRenderState = function()
 {
   var textureTableId = [];
   for (i = 0; i < 128; i++)
@@ -197,7 +201,7 @@ function MapRenderState()
   }
 }
 
-function MapDisplayDragCheck(_this)
+var MapDisplayDragCheck = function ( _this )
 {
   if (typeof _this.touchData === 'undefined' || _this.touchData === null)
   {
@@ -205,12 +209,12 @@ function MapDisplayDragCheck(_this)
   }
 }
 
-function Distance(pos1, pos2)
+var Distance = function ( pos1, pos2 )
 {
   return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
 }
 
-function MapDisplayDragRefresh(_this)
+var MapDisplayDragRefresh = function ( _this )
 {
   MapDisplayDragCheck(_this);
   if (_this.touchData.length == 0)
@@ -240,12 +244,12 @@ function MapDisplayDragRefresh(_this)
   }
 }
 
-function onMapDisplayDragStart(event)
+var onMapDisplayDragStart = function ( event )
 {
-  MapDisplayDragCheck(this);
-  this.touchData.push(event.data);
-  console.log("added " + event.data.identifier);
-  MapDisplayDragRefresh(this);
+  MapDisplayDragCheck( this );
+  this.touchData.push( event.data );
+  console.log( "added " + event.data.identifier );
+  MapDisplayDragRefresh( this );
   
   /*
     if (typeof this.firstTouchData === 'undefined' || this.firstTouchData === null)
@@ -267,27 +271,30 @@ function onMapDisplayDragStart(event)
     */
 }
 
-function onMapDisplayDragEnd(event)
+var onMapDisplayDragEnd = function ( event )
 {
-  MapDisplayDragCheck(this);
-  var touchIndex = this.touchData.indexOf(event.data);
-  if (touchIndex >= 0)
+  MapDisplayDragCheck( this );
+  var touchIndex = this.touchData.indexOf( event.data );
+  if ( touchIndex >= 0 )
   {
-    this.touchData.splice(touchIndex, 1);
+    this.touchData.splice( touchIndex, 1 );
   }
-  console.log("removed " + event.data.identifier);
-  MapDisplayDragRefresh(this);
+  console.log( "removed " + event.data.identifier );
+  MapDisplayDragRefresh( this );
 }
 
-function onMapDisplayDragMove()
+var onMapDisplayDragMove = function()
 {
-  if (this.dragging)
+  if ( this.dragging )
   {
     var newPosition = this.touchData[0].getLocalPosition(this.parent);
     this.x = this.startX - this.pointerStartX + newPosition.x;
     this.y = this.startY - this.pointerStartY + newPosition.y;
   }
 }
+    
+    return public;
+})();
 
 function Update()
 {
