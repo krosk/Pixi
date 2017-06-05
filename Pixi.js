@@ -2,8 +2,8 @@
 //Called when application is started.
 function OnStart()
 {
-    var xmlSheet = readTextFile( "Img/cityTiles_sheet.xml" );
-    var jsonSheet = xmlToJsonAtlas( xmlSheet );
+    var xmlSheet = MUTILS.readTextFile( "Img/cityTiles_sheet.xml" );
+    var jsonSheet = MUTILS.xmlToJsonAtlas( xmlSheet );
     //console.log( JSON.stringify( jsonSheet ));
     app.WriteFile( "Img/cityTiles_sheet.json", JSON.stringify( jsonSheet ));
   
@@ -297,68 +297,74 @@ function Update()
   m_frameCounter++;
 }
 
-function readTextFile( file )
+var MUTILS = (function ()
 {
-    var rawFile = new XMLHttpRequest();
-    var allText = "";
-    rawFile.open( "GET", file, false );
-    rawFile.onreadystatechange = function ()
+    var public = {};
+    public.readTextFile = function ( file )
     {
-        if ( rawFile.readyState === 4 )
+        var rawFile = new XMLHttpRequest();
+        var allText = "";
+        rawFile.open( "GET", file, false );
+        rawFile.onreadystatechange = function ()
         {
-            if ( rawFile.status === 200 || rawFile.status == 0 )
+            if ( rawFile.readyState === 4 )
             {
-                allText = rawFile.responseText;
+                if ( rawFile.status === 200 || rawFile.status == 0 )
+                {
+                    allText = rawFile.responseText;
+                }
             }
         }
+        rawFile.send( null );
+        return allText;
     }
-    rawFile.send( null );
-    return allText;
-}
 
-function xmlToJsonAtlas( xmlString )
-{
-    console.log( "loading atlas" );
-    var parser = new DOMParser();
-    var xmlDoc = parser.parseFromString( xmlString,"text/xml" );
-    var masterXml = xmlDoc.getElementsByTagName( "TextureAtlas" )[0];
-    var filePath = masterXml.attributes["imagePath"].value;
-    var collection = masterXml.childNodes;
-    var textureCount = 0;
-  
-    var framesJson = {};
-  
-    for ( i = 0; i < collection.length; i++ )
+    public.xmlToJsonAtlas = function ( xmlString )
     {
-        var spriteNode = collection.item( i );
-        if (spriteNode.nodeName != "SubTexture")
+        console.log( "loading atlas" );
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString( xmlString,"text/xml" );
+        var masterXml = xmlDoc.getElementsByTagName( "TextureAtlas" )[0];
+        var filePath = masterXml.attributes["imagePath"].value;
+        var collection = masterXml.childNodes;
+        var textureCount = 0;
+  
+        var framesJson = {};
+  
+        for ( var i = 0; i < collection.length; i++ )
         {
-            continue;
+            var spriteNode = collection.item( i );
+            if (spriteNode.nodeName != "SubTexture")
+            {
+                continue;
+            }
+            var path = spriteNode.attributes["name"].value;
+            var x = parseInt( spriteNode.attributes["x"].value );
+            var y = parseInt( spriteNode.attributes["y"].value );
+            var w = parseInt( spriteNode.attributes["width"].value );
+            var h = parseInt( spriteNode.attributes["height"].value );
+    
+            var localJsonContent =
+            {
+                frame : { x : x, y : y, w : w, h : h },
+                spriteSourceSize : { x : 0, y : 0, w: w, h : h },
+                sourceSize : { w : w, h : h },
+                rotated : false,
+                trimmed : false,
+                pivot : { x : 0, y : 0 }
+            };
+    
+            framesJson[path] = localJsonContent;
+    
+            textureCount++;
         }
-        var path = spriteNode.attributes["name"].value;
-        var x = parseInt( spriteNode.attributes["x"].value );
-        var y = parseInt( spriteNode.attributes["y"].value );
-        var w = parseInt( spriteNode.attributes["width"].value );
-        var h = parseInt( spriteNode.attributes["height"].value );
-    
-        var localJsonContent =
-        {
-            frame : { x : x, y : y, w : w, h : h },
-            spriteSourceSize : { x : 0, y : 0, w: w, h : h },
-            sourceSize : { w : w, h : h },
-            rotated : false,
-            trimmed : false,
-            pivot : { x : 0, y : 0 }
-        };
-    
-        framesJson[path] = localJsonContent;
-    
-        textureCount++;
+  
+        var metaJson = { image : filePath };
+  
+        var atlasJson = { frames : framesJson, meta : metaJson };
+  
+        return atlasJson;
     }
-  
-    var metaJson = { image : filePath };
-  
-    var atlasJson = { frames : framesJson, meta : metaJson };
-  
-    return atlasJson;
-}
+    
+    return public;
+})();
