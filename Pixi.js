@@ -105,18 +105,9 @@ function GetTextureName(id)
   return  "cityTiles_" + ("00" + id).slice(-3) + ".png";
 }
 
-var c_textureBaseSizeX = 130;
-var c_textureBaseSizeY = 66;
 
-function GetTileDisplayX(x, y)
-{
-  return c_textureBaseSizeX / 2 * x - c_textureBaseSizeX / 2 * y;
-}
 
-function GetTileDisplayY(x, y)
-{
-  return c_textureBaseSizeY / 2 * x + c_textureBaseSizeY / 2 * y;
-}
+
 
 function WaitingState()
 {
@@ -146,6 +137,9 @@ var MMAPRENDER = (function ()
     var public = {};
     
     var m_mapDisplay = null;
+    
+    var TEXTURE_BASE_SIZE_X = 130;
+    var TEXTURE_BASE_SIZE_Y = 66;
     
 public.MapRenderState = function()
 {
@@ -183,8 +177,8 @@ public.MapRenderState = function()
         //sprite.x = Math.floor(Math.random() * g_app.renderer.width);
         //sprite.y = Math.floor(Math.random() * g_app.renderer.height);
         
-        sprite.x = GetTileDisplayX(x, y);
-        sprite.y = GetTileDisplayY(x, y) - sprite.height;
+        sprite.x = getTileDisplayX(x, y);
+        sprite.y = getTileDisplayY(x, y) - sprite.height;
         
         m_mapDisplay.addChild(sprite);
       }
@@ -203,7 +197,17 @@ public.MapRenderState = function()
   }
 }
 
-var MapDisplayDragCheck = function ( _this )
+var getTileDisplayX = function (x, y)
+{
+  return TEXTURE_BASE_SIZE_X / 2 * x - TEXTURE_BASE_SIZE_X / 2 * y;
+}
+
+var getTileDisplayY = function (x, y)
+{
+  return TEXTURE_BASE_SIZE_Y / 2 * x + TEXTURE_BASE_SIZE_Y / 2 * y;
+}
+
+var mapDisplayDragCheck = function ( _this )
 {
   if (typeof _this.touchData === 'undefined' || _this.touchData === null)
   {
@@ -211,15 +215,15 @@ var MapDisplayDragCheck = function ( _this )
   }
 }
 
-var Distance = function ( pos1, pos2 )
+var getDistanceBetween = function ( pos1, pos2 )
 {
   return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
 }
 
-var MapDisplayDragRefresh = function ( _this )
+var mapDisplayDragRefresh = function ( _this )
 {
-  MapDisplayDragCheck(_this);
-  if (_this.touchData.length == 0)
+  mapDisplayDragCheck( _this );
+  if ( _this.touchData.length == 0 )
   {
     _this.startX = null;
     _this.startY = null;
@@ -227,9 +231,9 @@ var MapDisplayDragRefresh = function ( _this )
     _this.pointerStartY = null;
     _this.dragging = false;
   }
-  if (_this.touchData.length > 0)
+  if ( _this.touchData.length > 0 )
   {
-    var newPosition = _this.touchData[0].getLocalPosition(_this.parent);
+    var newPosition = _this.touchData[0].getLocalPosition( _this.parent );
     _this.startX = _this.x;
     _this.startY = _this.y;
     _this.pointerStartX = newPosition.x;
@@ -238,20 +242,20 @@ var MapDisplayDragRefresh = function ( _this )
     _this.startDistance = 0;
     _this.dragging = true;
   }
-  if (_this.touchData.length > 1)
+  if ( _this.touchData.length > 1 )
   {
-    var pos1 = _this.touchData[0].getLocalPosition(_this.parent);
-    var pos2 = _this.touchData[1].getLocalPosition(_this.parent);
-    _this.startDistance = Distance(pos1, pos2);
+    var pos1 = _this.touchData[0].getLocalPosition( _this.parent );
+    var pos2 = _this.touchData[1].getLocalPosition( _this.parent );
+    _this.startDistance = getDiistanceBetween(pos1, pos2);
   }
 }
 
 var onMapDisplayDragStart = function ( event )
 {
-  MapDisplayDragCheck( this );
+  mapDisplayDragCheck( this );
   this.touchData.push( event.data );
   console.log( "added " + event.data.identifier );
-  MapDisplayDragRefresh( this );
+  mapDisplayDragRefresh( this );
   
   /*
     if (typeof this.firstTouchData === 'undefined' || this.firstTouchData === null)
@@ -275,14 +279,14 @@ var onMapDisplayDragStart = function ( event )
 
 var onMapDisplayDragEnd = function ( event )
 {
-  MapDisplayDragCheck( this );
+  mapDisplayDragCheck( this );
   var touchIndex = this.touchData.indexOf( event.data );
   if ( touchIndex >= 0 )
   {
     this.touchData.splice( touchIndex, 1 );
   }
   console.log( "removed " + event.data.identifier );
-  MapDisplayDragRefresh( this );
+  mapDisplayDragRefresh( this );
 }
 
 var onMapDisplayDragMove = function()
