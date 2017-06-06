@@ -170,47 +170,64 @@ var MMAPRENDER = (function ()
     var public = {};
     
     var m_mapDisplay = null;
+    var m_mapTileTable = [];
     
     var TEXTURE_BASE_SIZE_X = 130;
     var TEXTURE_BASE_SIZE_Y = 66;
     
 public.MapRenderState = function()
 {
-  if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
-  {
-    m_mapDisplay = new PIXI.Container();
+    // initilizing
+    if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
+    {
+        m_mapDisplay = new PIXI.Container();
     
-    m_mapDisplay.interactive = true;
+        m_mapDisplay.interactive = true;
     
-    m_mapDisplay.on('pointerdown', onMapDisplayDragStart);
-    m_mapDisplay.on('pointermove', onMapDisplayDragMove);
-    m_mapDisplay.on('pointerupoutside', onMapDisplayDragEnd);
-    m_mapDisplay.on('pointerup', onMapDisplayDragEnd);
+        m_mapDisplay.on('pointerdown', onMapDisplayDragStart);
+        m_mapDisplay.on('pointermove', onMapDisplayDragMove);
+        m_mapDisplay.on('pointerupoutside', onMapDisplayDragEnd);
+        m_mapDisplay.on('pointerup', onMapDisplayDragEnd);
+        
+        g_app.stage.addChild(m_mapDisplay);
+    }
     
+    // updating
     var textureTableX = MMAPDATA.GetMapTableSizeX();
     var textureTableY = MMAPDATA.GetMapTableSizeY();
     var textureTableId = MMAPDATA.GetMapTableData();
     for (var x = 0; x < textureTableX; x++)
     {
-      for (var y = 0; y < textureTableY; y++)
-      {
-        var i = x * textureTableY + y;
-        var id = textureTableId[i];
-        var textureName = GetTextureName(id);
-        
-        var tileTextureCache = PIXI.utils.TextureCache[textureName];
-  
-        var sprite = new PIXI.Sprite(tileTextureCache);
-        
-        sprite.x = getTileDisplayX(x, y);
-        sprite.y = getTileDisplayY(x, y) - sprite.height;
-        
-        m_mapDisplay.addChild(sprite);
-      }
+        for (var y = 0; y < textureTableY; y++)
+        {
+            var i = x * textureTableY + y;
+            var id = textureTableId[i];
+            
+            public.SetTile(x, y, i, id);
+        }
     }
-    
-    g_app.stage.addChild(m_mapDisplay);
-  }
+}
+
+public.SetTile = function (x, y, i, id)
+{
+    var textureName = GetTextureName( id );
+    var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
+        
+    if ( typeof m_mapTileTable[i] === 'undefined' || m_mapTileTable[i] === null )
+    {
+        var sprite = new PIXI.Sprite( tileTextureCache );
+                
+        m_mapTileTable[i] = sprite;
+        
+        sprite.x = getTileDisplayX( x, y );
+        sprite.y = getTileDisplayY( x, y ) - sprite.height;
+        
+        m_mapDisplay.addChild( sprite );
+    }
+    else
+    {
+        m_mapTileTable[i].texture = tileTextureCache;
+    }
 }
 
 var getTileDisplayX = function (x, y)
