@@ -153,6 +153,7 @@ var MMAP = (function ()
     
     public.mapState = function()
     {
+        MMAPDATA.randomizeTile( 1 );
         var changedTile = MMAPDATA.commitChangeLog();
         updateMapRender( changedTile );
     }
@@ -189,10 +190,21 @@ var MMAPDATA = (function ()
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
             {
-                var i = x * m_mapTableSizeY + y;
                 var randomId = Math.floor(Math.random() * 128);
-                m_mapChangeLog[i] = { x : x, y : y, id : randomId };
+                var tile = { x : x, y : y, id : randomId };
+                m_mapChangeLog.push( tile );
             }
+        }
+    }
+    public.randomizeTile = function ( count )
+    {
+        for ( var i = 0; i < count; i++ )
+        {
+            var x = Math.floor( m_mapTableSizeX * Math.random() );
+            var y = Math.floor( m_mapTableSizeY * Math.random() );
+            var id = Math.floor( 128 * Math.random() );
+            var tile = { x : x, y : y, id : id };
+            m_mapChangeLog.push( tile );
         }
     }
     
@@ -202,8 +214,8 @@ var MMAPDATA = (function ()
         for ( var i = 0; i < m_mapChangeLog.length; i++ )
         {
             var tile = m_mapChangeLog[i];
-            var i = tile.x * m_mapTableSizeY + tile.y;
-            m_mapTableData[i] = tile.id;
+            var index = tile.x * m_mapTableSizeY + tile.y;
+            m_mapTableData[ index ] = tile.id;
             output.push( tile );
         }
         m_mapChangeLog = [];
