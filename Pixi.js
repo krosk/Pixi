@@ -83,8 +83,8 @@ function LoaderProgressHandler(loader, resource)
 function LoaderSetup()
 {
   console.log("image loaded, testingScene" );
-  MMAPDATA.Initialize();
-  g_state = MMAPRENDER.MapRenderState;
+  MMAP.initialize();
+  g_state = MMAP.mapState;
 }
 
 function Resize()
@@ -132,11 +132,40 @@ function TestRenderState()
   g_app.stage.addChild(sprite);
 }
 
+var MMAP = (function ()
+{
+    var public = {};
+    
+    public.initialize = function()
+    {
+        MMAPDATA.initialize();
+        MMAPRENDER.initialize();
+    }
+    
+    var updateMapRender = function( tileToUpdate )
+    {
+        for ( var i = 0; i < tileToUpdate.length; i++ )
+        {
+            var tile = tileToUpdate[i];
+            MMAPRENDER.setTile(tile.x, tile.y, tile.id);
+        }
+    }
+    
+    public.mapState = function()
+    {
+        var changedTile = MMAPDATA.commitChangeLog();
+        updateMapRender( changedTile );
+    }
+    
+    return public;
+})();
+
 var MMAPDATA = (function ()
 {
     var public = {};
     
     var m_mapTableData = [];
+    var m_mapChangeLog = [];
     var m_mapTableSizeX = 0;
     var m_mapTableSizeY = 0;
     
@@ -152,14 +181,32 @@ var MMAPDATA = (function ()
     {
         return m_mapTableSizeY;
     }
-    public.Initialize = function()
+    public.initialize = function()
     {
-        for ( var i = 0; i < 128; i++ )
-        {
-            m_mapTableData[i] = i;
-        }
         m_mapTableSizeX = 10;
         m_mapTableSizeY = 10;
+        for ( var x = 0; x < m_mapTableSizeX; x++ )
+        {
+            for ( var y = 0; y < m_mapTableSizeY; y++ )
+            {
+                var i = x * m_mapTableSizeY + y;
+                m_mapChangeLog[i] = { x : x, y : y, id : i };
+            }
+        }
+    }
+    
+    public.commitChangeLog = function()
+    {
+        var output = [];
+        for ( var i = 0; i < m_mapChangeLog.length; i++ )
+        {
+            var tile = m_mapChangeLog[i];
+            var i = tile.x * m_mapTableSizeY + tile.y;
+            m_mapTableData[i] = tile.id;
+            output.push( tile );
+        }
+        m_mapChangeLog = [];
+        return output;
     }
     
     return public;
@@ -175,41 +222,26 @@ var MMAPRENDER = (function ()
     var TEXTURE_BASE_SIZE_X = 130;
     var TEXTURE_BASE_SIZE_Y = 66;
     
-public.MapRenderState = function()
-{
-    // initilizing
-    if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
+    public.initialize = function()
     {
-        m_mapDisplay = new PIXI.Container();
-    
-        m_mapDisplay.interactive = true;
-    
-        m_mapDisplay.on('pointerdown', onMapDisplayDragStart);
-        m_mapDisplay.on('pointermove', onMapDisplayDragMove);
-        m_mapDisplay.on('pointerupoutside', onMapDisplayDragEnd);
-        m_mapDisplay.on('pointerup', onMapDisplayDragEnd);
-        
-        g_app.stage.addChild(m_mapDisplay);
-    }
-    
-    // updating
-    var textureTableX = MMAPDATA.GetMapTableSizeX();
-    var textureTableY = MMAPDATA.GetMapTableSizeY();
-    var textureTableId = MMAPDATA.GetMapTableData();
-    for (var x = 0; x < textureTableX; x++)
-    {
-        for (var y = 0; y < textureTableY; y++)
+        if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
         {
-            var i = x * textureTableY + y;
-            var id = textureTableId[i];
-            
-            public.SetTile(x, y, i, id);
+            m_mapDisplay = new PIXI.Container();
+    
+            m_mapDisplay.interactive = true;
+    
+            m_mapDisplay.on('pointerdown', onMapDisplayDragStart);
+            m_mapDisplay.on('pointermove', onMapDisplayDragMove);
+            m_mapDisplay.on('pointerupoutside', onMapDisplayDragEnd);
+            m_mapDisplay.on('pointerup', onMapDisplayDragEnd);
+        
+            g_app.stage.addChild(m_mapDisplay);
         }
     }
-}
 
-public.SetTile = function (x, y, i, id)
+public.setTile = function ( x, y, id )
 {
+    var i =  x * MMAPDATA.GetMapTableSizeY() + y;
     var textureName = GetTextureName( id );
     var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
         
