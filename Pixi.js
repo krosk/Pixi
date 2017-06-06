@@ -184,8 +184,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 10;
-        m_mapTableSizeY = 10;
+        m_mapTableSizeX = 70;
+        m_mapTableSizeY = 70;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
