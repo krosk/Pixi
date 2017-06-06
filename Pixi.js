@@ -190,7 +190,8 @@ var MMAPDATA = (function ()
             for ( var y = 0; y < m_mapTableSizeY; y++ )
             {
                 var i = x * m_mapTableSizeY + y;
-                m_mapChangeLog[i] = { x : x, y : y, id : i };
+                var randomId = Math.floor(Math.random() * 128);
+                m_mapChangeLog[i] = { x : x, y : y, id : randomId };
             }
         }
     }
