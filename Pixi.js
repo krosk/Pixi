@@ -243,8 +243,8 @@ var MMAPRENDER = (function ()
     {
         return g_app.renderer.height;
     }
-    var m_cameraAbsoluteX = 0;
-    var m_cameraAbsoluteY = 0;
+    var m_cameraMapX = 0;
+    var m_cameraMapY = 0;
     var m_cameraScaleX = 1;
     var m_cameraScaleY = 1;
     
@@ -263,8 +263,8 @@ var MMAPRENDER = (function ()
         
             g_app.stage.addChild(m_mapDisplay);
             
-            m_cameraAbsoluteX = viewWidth() / 2;
-            m_cameraAbsoluteY = viewHeight() / 2;
+            m_cameraMapX = viewWidth() / 2;
+            m_cameraMapY = viewHeight() / 2;
         }
     }
     
@@ -368,10 +368,8 @@ var mapDisplayDragRefresh = function ( _this )
     
     _this.startPointerScreenX = pointerPositionOnScreen.x;
     _this.startPointerScreenY = pointerPositionOnScreen.y;
-    _this.startCameraMapX = m_cameraAbsoluteX;
-    _this.startCameraMapY = m_cameraAbsoluteY;
-    
-    console.log(m_cameraAbsoluteX);
+    _this.startCameraMapX = m_cameraMapX;
+    _this.startCameraMapY = m_cameraMapY;
   }
   if ( _this.touchData.length > 1 )
   {
@@ -404,6 +402,11 @@ var onMapDisplayDragEnd = function ( event )
 
 var onMapDisplayDragMove = function()
 {
+    if ( this.dragging || this.zooming )
+    {
+        updateCamera( this );
+    }
+    // during touch refresh
     if ( this.dragging )
     {
         //console.log('move');
@@ -420,10 +423,6 @@ var onMapDisplayDragMove = function()
         var ratio = newDistance / this.startDistance;
         this.scale.x = this.startScaleX * ratio;
         this.scale.y = this.startScaleY * ratio;
-    }
-    if ( this.dragging || this.zooming )
-    {
-        updateCamera( this );
     }
 }
 
@@ -446,23 +445,11 @@ var onMapDisplayDragMove = function()
         var startPointerMapX = _this.startCameraMapX + startCameraToPointerScreenX / _this.startScaleX;
         var startPointerMapY = _this.startCameraMapY + startCameraToPointerScreenY / _this.startScaleY;
         
-        var deltaPointerScreenX = ( pointerScreen.x - _this.startPointerScreenX );
-        var deltaPointerScreenY = ( pointerScreen.y - _this.startPointerScreenY );
-        
-        // pointerMap is the map scaled position of the pointer, if map does not get dragged
-        var pointerMapX = startPointerMapX + deltaPointerScreenX / m_cameraScaleX;
-        var pointerMapY = startPointerMapY + deltaPointerScreenY / m_cameraScaleY;
-        //console.log(pointerMapY);
-        
         // map supposedly moves to pointerMap so cameraMap changes accordingly
-        var cameraMapX = startPointerMapX + ( cameraScreenX - pointerScreen.x ) / m_cameraScaleX;
-        var cameraMapY = startPointerMapY + ( cameraScreenY - pointerScreen.y ) / m_cameraScaleY;
+        m_cameraMapX = startPointerMapX + ( cameraScreenX - pointerScreen.x ) / m_cameraScaleX;
+        m_cameraMapY = startPointerMapY + ( cameraScreenY - pointerScreen.y ) / m_cameraScaleY;
         
-        //m_cameraAbsoluteX = _this.startCameraX - (pivotScreen.x - _this.startPointerScreenX) / _this.scale.x;
-        //m_cameraAbsoluteY = _this.startCameraY - (pivotScreen.y - _this.startPointerScreenY) / _this.scale.y;
-        m_cameraAbsoluteX = cameraMapX;
-        m_cameraAbsoluteY = cameraMapY;
-        g_counter.innerHTML = '(' + Math.floor( m_cameraAbsoluteX ) + ',' + Math.floor( m_cameraAbsoluteY ) + ',' + m_cameraScaleX + ')';
+        g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
     }
     
     return public;
