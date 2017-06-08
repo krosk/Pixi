@@ -243,6 +243,15 @@ var MMAPRENDER = (function ()
     {
         return g_app.renderer.height;
     }
+    var cameraScreenX = function()
+    {
+        return viewWidth() / 2;
+    }
+    var cameraScreenY = function()
+    {
+        return viewHeight() / 2;
+    }
+    
     var m_cameraMapX = 0;
     var m_cameraMapY = 0;
     var m_cameraScaleX = 1;
@@ -438,18 +447,25 @@ var onMapDisplayDragMove = function()
             m_cameraScaleY = _this.startScaleY * ratio;
         }
         
-        var cameraScreenX = viewWidth() / 2;
-        var cameraScreenY = viewHeight() / 2;
-        var startCameraToPointerScreenX = _this.startPointerScreenX - cameraScreenX;
-        var startCameraToPointerScreenY = _this.startPointerScreenY - cameraScreenY;
+        var startCameraToPointerScreenX = _this.startPointerScreenX - cameraScreenX();
+        var startCameraToPointerScreenY = _this.startPointerScreenY - cameraScreenY();
         var startPointerMapX = _this.startCameraMapX + startCameraToPointerScreenX / _this.startScaleX;
         var startPointerMapY = _this.startCameraMapY + startCameraToPointerScreenY / _this.startScaleY;
         
         // map supposedly moves to pointerMap so cameraMap changes accordingly
-        m_cameraMapX = startPointerMapX + ( cameraScreenX - pointerScreen.x ) / m_cameraScaleX;
-        m_cameraMapY = startPointerMapY + ( cameraScreenY - pointerScreen.y ) / m_cameraScaleY;
+        m_cameraMapX = startPointerMapX + ( cameraScreenX() - pointerScreen.x ) / m_cameraScaleX;
+        m_cameraMapY = startPointerMapY + ( cameraScreenY() - pointerScreen.y ) / m_cameraScaleY;
         
         g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
+    }
+    
+    var refreshDisplay = function()
+    {
+        var leftBoundaryMapX = m_cameraMapX - cameraScreenX() * m_cameraScaleX;
+        var rightBoundaryMapX = leftBoundaryMapX + viewWidth() * m_cameraScaleX;
+        var topBoundaryMapY = m_cameraMapY - cameraScreenY() * m_cameraScaleY;
+        var bottomBoundaryMapY = topBoundaryMapY + viewHeight() * m_cameraScaleY;
+        
     }
     
     return public;
