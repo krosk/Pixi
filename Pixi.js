@@ -291,8 +291,8 @@ public.setTile = function ( x, y, id )
                 
         m_mapTileTable[i] = sprite;
         
-        sprite.x = getTileDisplayX( x, y );
-        sprite.y = getTileDisplayY( x, y ) - sprite.height;
+        sprite.x = tileToMapX( x, y );
+        sprite.y = tileToMapY( x, y ) - sprite.height;
         
         m_mapDisplay.addChild( sprite );
     }
@@ -302,15 +302,15 @@ public.setTile = function ( x, y, id )
     }
 }
 
-var getTileDisplayX = function (x, y)
-{
-    return TEXTURE_BASE_SIZE_X / 2 * x - TEXTURE_BASE_SIZE_X / 2 * y;
-}
+    var tileToMapX = function ( x, y )
+    {
+        return TEXTURE_BASE_SIZE_X / 2 * x - TEXTURE_BASE_SIZE_X / 2 * y;
+    }
 
-var getTileDisplayY = function (x, y)
-{
-    return TEXTURE_BASE_SIZE_Y / 2 * x + TEXTURE_BASE_SIZE_Y / 2 * y;
-}
+    var tileToMapY = function ( x, y )
+    {
+        return TEXTURE_BASE_SIZE_Y / 2 * x + TEXTURE_BASE_SIZE_Y / 2 * y;
+    }
 
 var mapDisplayDragCheck = function ( _this )
 {
@@ -465,6 +465,30 @@ var onMapDisplayDragMove = function()
         var rightBoundaryMapX = leftBoundaryMapX + viewWidth() * m_cameraScaleX;
         var topBoundaryMapY = m_cameraMapY - cameraScreenY() * m_cameraScaleY;
         var bottomBoundaryMapY = topBoundaryMapY + viewHeight() * m_cameraScaleY;
+        
+        // display if topCut < tilex + tiley < bottomCut
+        var topCut = Math.floor( topBoundaryMapY / TEXTURE_BASE_SIZE_Y - 1 ) * 2;
+        var bottomCut = Math.floor( bottomBoundaryMapY / TEXTURE_BASE_SIZE_Y + 1 ) * 2;
+        // display if leftCut < tilex - tiley < rightCut;
+        var rightCut = Math.floor( rightBoundaryMapX / TEXTURE_BASE_SIZE_X + 1 ) * 2;
+        var leftCut = Math.floor( leftBoundaryMapX / TEXTURE_BASE_SIZE_X - 1 ) * 2;
+    }
+    
+    var screenToMapX = function( x )
+    {
+        return m_cameraMapX + ( x - cameraScreenX() ) * m_cameraScaleX;
+    }
+    
+    var screenToMapY = function( y )
+    {
+        return m_cameraMapY + ( y - cameraScreenY() ) * m_cameraScaleY;
+    }
+    
+    public.tileXAtScreenPosition = function( x, y )
+    {
+        var mapX = screenToMapX( x );
+        var mapY = screenToMapY( y );
+        
         
     }
     
