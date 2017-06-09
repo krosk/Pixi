@@ -276,33 +276,6 @@ var MMAPRENDER = (function ()
             m_cameraMapY = viewHeight() / 2;
         }
     }
-    
-    
-
-public.setTile = function ( x, y, id )
-{
-    var i =  x * MMAPDATA.GetMapTableSizeY() + y;
-    var textureName = GetTextureName( id );
-    var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
-        
-    if ( typeof m_mapTileTable[i] === 'undefined' || m_mapTileTable[i] === null )
-    {
-        var sprite = new PIXI.Sprite( tileTextureCache );
-                
-        m_mapTileTable[i] = sprite;
-        
-        // use tileToMap as base center position
-        // note that the pivot point is 0, 0 by default
-        sprite.x = tileToMapX( x, y ) - sprite.width / 2;
-        sprite.y = tileToMapY( x, y ) - sprite.height + TEXTURE_BASE_SIZE_Y;
-        
-        m_mapDisplay.addChild( sprite );
-    }
-    else
-    {
-        m_mapTileTable[i].texture = tileTextureCache;
-    }
-}
 
     var tileToMapX = function ( x, y )
     {
@@ -314,15 +287,66 @@ public.setTile = function ( x, y, id )
         return TEXTURE_BASE_SIZE_Y / 2 * ( x + y );
     }
     
+    // not to be used to check selection
+    // does not take into account sprite height
+    // nor z level
     var mapToTileX = function ( x, y )
     {
         return x / TEXTURE_BASE_SIZE_X + y / TEXTURE_BASE_SIZE_Y;
-        
     }
     
     var mapToTileY = function ( x, y )
     {
         return Y = y / TEXTURE_BASE_SIZE_Y - x / TEXTURE_BASE_SIZE_X;
+    }
+    
+    var screenToMapX = function ( x )
+    {
+        return m_cameraMapX + ( x - cameraScreenX() ) / m_cameraScaleX;
+    }
+    
+    var screenToMapY = function ( y )
+    {
+        return m_cameraMapY + ( y - cameraScreenY() ) / m_cameraScaleY;
+    }
+    
+    public.tileXAtScreenPosition = function ( x, y )
+    {
+        var mapX = screenToMapX( x );
+        var mapY = screenToMapY( y );
+        return mapToTileX( mapX, mapY );
+    }
+    
+    public.tileYAtScreenPosition = function ( x, y )
+    {
+        var mapX = screenToMapX( x );
+        var mapY = screenToMapY( y );
+        return mapToTileY( mapX, mapY );
+    }
+    
+    public.setTile = function ( x, y, id )
+    {
+        var i =  x * MMAPDATA.GetMapTableSizeY() + y;
+        var textureName = GetTextureName( id );
+        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
+        
+        if ( typeof m_mapTileTable[i] === 'undefined' || m_mapTileTable[i] === null )
+        {
+            var sprite = new PIXI.Sprite( tileTextureCache );
+                
+            m_mapTileTable[i] = sprite;
+        
+            // use tileToMap as base center position
+            // note that the pivot point is 0, 0 by default
+            sprite.x = tileToMapX( x, y ) - sprite.width / 2;
+            sprite.y = tileToMapY( x, y ) - sprite.height + TEXTURE_BASE_SIZE_Y;
+        
+            m_mapDisplay.addChild( sprite );
+        }
+        else
+        {
+            m_mapTileTable[i].texture = tileTextureCache;
+        }
     }
 
 var mapDisplayDragCheck = function ( _this )
@@ -493,29 +517,7 @@ var onMapDisplayDragMove = function()
         var leftCut = Math.floor( leftBoundaryMapX / TEXTURE_BASE_SIZE_X - 1 ) * 2;
     }
     
-    var screenToMapX = function ( x )
-    {
-        return m_cameraMapX + ( x - cameraScreenX() ) / m_cameraScaleX;
-    }
     
-    var screenToMapY = function ( y )
-    {
-        return m_cameraMapY + ( y - cameraScreenY() ) / m_cameraScaleY;
-    }
-    
-    public.tileXAtScreenPosition = function ( x, y )
-    {
-        var mapX = screenToMapX( x );
-        var mapY = screenToMapY( y );
-        return mapToTileX( mapX, mapY );
-    }
-    
-    public.tileYAtScreenPosition = function ( x, y )
-    {
-        var mapX = screenToMapX( x );
-        var mapY = screenToMapY( y );
-        return mapToTileY( mapX, mapY );
-    }
     
     return public;
 })();
