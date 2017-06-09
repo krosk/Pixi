@@ -154,6 +154,7 @@ var MMAP = (function ()
     
     public.mapState = function()
     {
+        // every frame
         MMAPDATA.randomizeTile( 1 );
         var changedTile = MMAPDATA.commitChangeLog();
         updateMapRender( changedTile );
@@ -516,22 +517,11 @@ var onMapDisplayDragMove = function()
         var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
         var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
         
-        var topRightCornerTileX = Math.floor( screenToTileX( viewWidth(), 0 ) );
-        var topRightCornerTileY = Math.floor( screenToTileY( viewWidth(), 0 ) );
-        
-        var bottomLeftCornerTileX = Math.floor( screenToTileX( 0, viewHeight() ) );
-        var bottomLeftCornerTileY = Math.floor( screenToTileY( 0, viewHeight() ) );
-        
-        var bottomRightCornerTileX = Math.floor( screenToTileX( viewWidth(), viewHeight() ) );
-        var bottomRightCornerTileY = Math.floor( screenToTileY( viewWidth(), viewHeight() ) );
-        
         var centerTileX = Math.floor( screenToTileX( viewWidth() / 2, viewHeight() / 2 ) );
         var centerTileY = Math.floor( screenToTileY( viewWidth() / 2, viewHeight() / 2 ) );
         
-        var topLeftId = tempXYToSpriteIndex( topLeftCornerTileX, topLeftCornerTileY );
-        var topRightId = tempXYToSpriteIndex( topRightCornerTileX, topRightCornerTileY );
-        var bottomLeftId = tempXYToSpriteIndex( bottomLeftCornerTileX, bottomLeftCornerTileY );
-        var bottomRightId = tempXYToSpriteIndex( bottomRightCornerTileX, bottomRightCornerTileY );
+        var cornerToCenterTileDistance = Math.floor( Math.sqrt( ( topLeftCornerTileX - centerTileX )**2 + ( topLeftCornerTileY - centerTileY )**2 ) );
+        
         var centerId = tempXYToSpriteIndex( centerTileX, centerTileY );
         
         for ( var j = 0; j < m_mapTileTable.length; j++ )
@@ -539,12 +529,14 @@ var onMapDisplayDragMove = function()
             m_mapTileTable[ j ].visible = false;
         }
         
-        for ( var i = -4; i <= 4; i++ )
+        var radius = cornerToCenterTileDistance;
+        
+        for ( var i = -radius; i <= radius; i++ )
         {
-            for ( var j = -4; j <= 4; j++ )
+            for ( var j = -radius; j <= radius; j++ )
             {
                 var id = tempXYToSpriteIndex( centerTileX + i, centerTileY + j );
-                if ( id >= 0 && id <= m_mapTileTable.length)
+                if ( id >= 0 && id < m_mapTileTable.length)
                 {
                     m_mapTileTable[ id ].visible = true;
                 }
