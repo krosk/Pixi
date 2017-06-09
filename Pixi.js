@@ -310,14 +310,14 @@ var MMAPRENDER = (function ()
         return m_cameraMapY + ( y - cameraScreenY() ) / m_cameraScaleY;
     }
     
-    public.tileXAtScreenPosition = function ( x, y )
+    var screenToTileX = function ( x, y )
     {
         var mapX = screenToMapX( x );
         var mapY = screenToMapY( y );
         return mapToTileX( mapX, mapY );
     }
     
-    public.tileYAtScreenPosition = function ( x, y )
+    var screenToTileY = function ( x, y )
     {
         var mapX = screenToMapX( x );
         var mapY = screenToMapY( y );
@@ -433,11 +433,13 @@ var onMapDisplayDragStart = function ( event )
   //console.log( "added " + event.data.identifier );
   mapDisplayDragRefresh( this );
   
+  /*
   var screenX = event.data.getLocalPosition( this.parent ).x;
   var screenY = event.data.getLocalPosition( this.parent ).y
-  var tileX = public.tileXAtScreenPosition( screenX, screenY );
-  var tileY = public.tileYAtScreenPosition( screenX, screenY );
+  var tileX = screenToTileX ( screenX, screenY );
+  var tileY = screenToTileY ( screenX, screenY );
   console.log( tileX + " " + tileY );
+  */
 }
 
 var onMapDisplayDragEnd = function ( event )
@@ -450,6 +452,7 @@ var onMapDisplayDragEnd = function ( event )
   }
   //console.log( "removed " + event.data.identifier );
   mapDisplayDragRefresh( this );
+  refreshDisplay();
 }
 
 var onMapDisplayDragMove = function()
@@ -502,19 +505,50 @@ var onMapDisplayDragMove = function()
         g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
     }
     
+    var tempXYToSpriteIndex = function ( x, y )
+    {
+        return x * MMAPDATA.GetMapTableSizeY() + y;
+    }
+    
     var refreshDisplay = function()
     {
-        var leftBoundaryMapX = m_cameraMapX - cameraScreenX() * m_cameraScaleX;
-        var rightBoundaryMapX = leftBoundaryMapX + viewWidth() * m_cameraScaleX;
-        var topBoundaryMapY = m_cameraMapY - cameraScreenY() * m_cameraScaleY;
-        var bottomBoundaryMapY = topBoundaryMapY + viewHeight() * m_cameraScaleY;
+        var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
+        var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
         
-        // display if topCut < tilex + tiley < bottomCut
-        var topCut = Math.floor( topBoundaryMapY / TEXTURE_BASE_SIZE_Y - 1 ) * 2;
-        var bottomCut = Math.floor( bottomBoundaryMapY / TEXTURE_BASE_SIZE_Y + 1 ) * 2;
-        // display if leftCut < tilex - tiley < rightCut;
-        var rightCut = Math.floor( rightBoundaryMapX / TEXTURE_BASE_SIZE_X + 1 ) * 2;
-        var leftCut = Math.floor( leftBoundaryMapX / TEXTURE_BASE_SIZE_X - 1 ) * 2;
+        var topRightCornerTileX = Math.floor( screenToTileX( viewWidth(), 0 ) );
+        var topRightCornerTileY = Math.floor( screenToTileY( viewWidth(), 0 ) );
+        
+        var bottomLeftCornerTileX = Math.floor( screenToTileX( 0, viewHeight() ) );
+        var bottomLeftCornerTileY = Math.floor( screenToTileY( 0, viewHeight() ) );
+        
+        var bottomRightCornerTileX = Math.floor( screenToTileX( viewWidth(), viewHeight() ) );
+        var bottomRightCornerTileY = Math.floor( screenToTileY( viewWidth(), viewHeight() ) );
+        
+        var centerTileX = Math.floor( screenToTileX( viewWidth() / 2, viewHeight() / 2 ) );
+        var centerTileY = Math.floor( screenToTileY( viewWidth() / 2, viewHeight() / 2 ) );
+        
+        var topLeftId = tempXYToSpriteIndex( topLeftCornerTileX, topLeftCornerTileY );
+        var topRightId = tempXYToSpriteIndex( topRightCornerTileX, topRightCornerTileY );
+        var bottomLeftId = tempXYToSpriteIndex( bottomLeftCornerTileX, bottomLeftCornerTileY );
+        var bottomRightId = tempXYToSpriteIndex( bottomRightCornerTileX, bottomRightCornerTileY );
+        var centerId = tempXYToSpriteIndex( centerTileX, centerTileY );
+        
+        for ( var j = 0; j < m_mapTileTable.length; j++ )
+        {
+            m_mapTileTable[ j ].visible = false;
+        }
+        
+        for ( var i = -4; i <= 4; i++ )
+        {
+            for ( var j = -4; j <= 4; j++ )
+            {
+                var id = tempXYToSpriteIndex( centerTileX + i, centerTileY + j );
+                if ( id >= 0 && id <= m_mapTileTable.length)
+                {
+                    m_mapTileTable[ id ].visible = true;
+                }
+            }
+        }
     }
     
     
