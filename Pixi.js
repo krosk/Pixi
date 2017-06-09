@@ -291,8 +291,10 @@ public.setTile = function ( x, y, id )
                 
         m_mapTileTable[i] = sprite;
         
-        sprite.x = tileToMapX( x, y );
-        sprite.y = tileToMapY( x, y ) - sprite.height;
+        // use tileToMap as base center position
+        // note that the pivot point is 0, 0 by default
+        sprite.x = tileToMapX( x, y ) - sprite.width / 2;
+        sprite.y = tileToMapY( x, y ) - sprite.height + TEXTURE_BASE_SIZE_Y;
         
         m_mapDisplay.addChild( sprite );
     }
@@ -304,12 +306,23 @@ public.setTile = function ( x, y, id )
 
     var tileToMapX = function ( x, y )
     {
-        return TEXTURE_BASE_SIZE_X / 2 * x - TEXTURE_BASE_SIZE_X / 2 * y;
+        return TEXTURE_BASE_SIZE_X / 2 * ( x - y );
     }
 
     var tileToMapY = function ( x, y )
     {
-        return TEXTURE_BASE_SIZE_Y / 2 * x + TEXTURE_BASE_SIZE_Y / 2 * y;
+        return TEXTURE_BASE_SIZE_Y / 2 * ( x + y );
+    }
+    
+    var mapToTileX = function ( x, y )
+    {
+        return x / TEXTURE_BASE_SIZE_X + y / TEXTURE_BASE_SIZE_Y;
+        
+    }
+    
+    var mapToTileY = function ( x, y )
+    {
+        return Y = y / TEXTURE_BASE_SIZE_Y - x / TEXTURE_BASE_SIZE_X;
     }
 
 var mapDisplayDragCheck = function ( _this )
@@ -393,8 +406,14 @@ var onMapDisplayDragStart = function ( event )
 {
   mapDisplayDragCheck( this );
   this.touchData.push( event.data );
-  console.log( "added " + event.data.identifier );
+  //console.log( "added " + event.data.identifier );
   mapDisplayDragRefresh( this );
+  
+  var screenX = event.data.getLocalPosition( this.parent ).x;
+  var screenY = event.data.getLocalPosition( this.parent ).y
+  var tileX = public.tileXAtScreenPosition( screenX, screenY );
+  var tileY = public.tileYAtScreenPosition( screenX, screenY );
+  console.log( tileX + " " + tileY );
 }
 
 var onMapDisplayDragEnd = function ( event )
@@ -405,7 +424,7 @@ var onMapDisplayDragEnd = function ( event )
   {
     this.touchData.splice( touchIndex, 1 );
   }
-  console.log( "removed " + event.data.identifier );
+  //console.log( "removed " + event.data.identifier );
   mapDisplayDragRefresh( this );
 }
 
@@ -474,22 +493,28 @@ var onMapDisplayDragMove = function()
         var leftCut = Math.floor( leftBoundaryMapX / TEXTURE_BASE_SIZE_X - 1 ) * 2;
     }
     
-    var screenToMapX = function( x )
+    var screenToMapX = function ( x )
     {
-        return m_cameraMapX + ( x - cameraScreenX() ) * m_cameraScaleX;
+        return m_cameraMapX + ( x - cameraScreenX() ) / m_cameraScaleX;
     }
     
-    var screenToMapY = function( y )
+    var screenToMapY = function ( y )
     {
-        return m_cameraMapY + ( y - cameraScreenY() ) * m_cameraScaleY;
+        return m_cameraMapY + ( y - cameraScreenY() ) / m_cameraScaleY;
     }
     
-    public.tileXAtScreenPosition = function( x, y )
+    public.tileXAtScreenPosition = function ( x, y )
     {
         var mapX = screenToMapX( x );
         var mapY = screenToMapY( y );
-        
-        
+        return mapToTileX( mapX, mapY );
+    }
+    
+    public.tileYAtScreenPosition = function ( x, y )
+    {
+        var mapX = screenToMapX( x );
+        var mapY = screenToMapY( y );
+        return mapToTileY( mapX, mapY );
     }
     
     return public;
