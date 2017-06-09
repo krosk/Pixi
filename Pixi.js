@@ -149,6 +149,7 @@ var MMAP = (function ()
             var tile = tileToUpdate[i];
             MMAPRENDER.setTile(tile.x, tile.y, tile.id);
         }
+        MMAPRENDER.draw();
     }
     
     public.mapState = function()
@@ -340,6 +341,7 @@ var MMAPRENDER = (function ()
             // note that the pivot point is 0, 0 by default
             sprite.x = tileToMapX( x, y ) - sprite.width / 2;
             sprite.y = tileToMapY( x, y ) - sprite.height + TEXTURE_BASE_SIZE_Y;
+            sprite.visible = false;
         
             m_mapDisplay.addChild( sprite );
         }
@@ -452,7 +454,6 @@ var onMapDisplayDragEnd = function ( event )
   }
   //console.log( "removed " + event.data.identifier );
   mapDisplayDragRefresh( this );
-  refreshDisplay();
 }
 
 var onMapDisplayDragMove = function()
@@ -510,7 +511,7 @@ var onMapDisplayDragMove = function()
         return x * MMAPDATA.GetMapTableSizeY() + y;
     }
     
-    var refreshDisplay = function()
+    public.draw = function()
     {
         var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
         var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
