@@ -209,7 +209,6 @@ var MMAPDATA = (function ()
             m_mapChangeLog.push( tile );
         }
     }
-    
     public.commitChangeLog = function()
     {
         var output = [];
@@ -223,6 +222,54 @@ var MMAPDATA = (function ()
         m_mapChangeLog = [];
         return output;
     }
+    public.isValidCoordinates = function ( tileX, tileY )
+    {
+        var isOutOfBound = tileX < 0 || 
+            tileX >= public.GetMapTableSizeX() || 
+            tileY < 0 ||
+            tileY >= public.GetMapTableSizeY();
+        return !isOutOfBound;
+    }
+    
+    return public;
+})();
+
+var MMAPSPRITE = (function ()
+{
+    var public = {};
+    
+    var m_mapTileTable = [];
+    
+    var hashIndex = function ( tileX, tileY )
+    {
+         return tileX * MMAPDATA.GetMapTableSizeY() + tileY;
+    }
+    
+    public.hasSprite = function ( tileX, tileY )
+    {
+        var i = hashIndex( tileX, tileY );
+        return !( typeof m_mapTileTable[i] === 'undefined' || m_mapTileTable[i] === null );
+    }
+    
+    public.setSprite = function ( tileX, tileY, sprite )
+    {
+        var i = hashIndex( tileX, tileY );
+        m_mapTileTable[ i ] = sprite;
+    }
+    
+    public.sprite = function ( tileX, tileY )
+    {
+        var i = hashIndex( tileX, tileY );
+        return m_mapTileTable[ i ];
+    }
+    
+    public.hideAll = function ()
+    {
+        for ( var j = 0; j < m_mapTileTable.length; j++ )
+        {
+            m_mapTileTable[ j ].visible = false;
+        }
+    }
     
     return public;
 })();
@@ -232,7 +279,6 @@ var MMAPRENDER = (function ()
     var public = {};
     
     var m_mapDisplay = null;
-    var m_mapTileTable = [];
     
     var TEXTURE_BASE_SIZE_X = 130;
     var TEXTURE_BASE_SIZE_Y = 66;
@@ -328,15 +374,14 @@ var MMAPRENDER = (function ()
     
     public.setTile = function ( tileX, tileY, id )
     {
-        var i =  tileX * MMAPDATA.GetMapTableSizeY() + tileY;
         var textureName = GetTextureName( id );
         var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
         
-        if ( typeof m_mapTileTable[i] === 'undefined' || m_mapTileTable[i] === null )
+        if ( !MMAPSPRITE.hasSprite( tileX, tileY ) )
         {
             var sprite = new PIXI.Sprite( tileTextureCache );
                 
-            m_mapTileTable[i] = sprite;
+            MMAPSPRITE.setSprite( tileX, tileY, sprite );
         
             // use tileToMap as base center position
             // note that the pivot point is 0, 0 by default
@@ -348,7 +393,7 @@ var MMAPRENDER = (function ()
         }
         else
         {
-            m_mapTileTable[i].texture = tileTextureCache;
+            MMAPSPRITE.sprite( tileX, tileY ).texture = tileTextureCache;
         }
     }
 
@@ -507,10 +552,7 @@ var onMapDisplayDragMove = function()
         g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
     }
     
-    var tempXYToSpriteIndex = function ( x, y )
-    {
-        return x * MMAPDATA.GetMapTableSizeY() + y;
-    }
+    
     
     public.draw = function()
     {
@@ -522,23 +564,19 @@ var onMapDisplayDragMove = function()
         
         var cornerToCenterTileDistance = Math.floor( Math.sqrt( ( topLeftCornerTileX - centerTileX )**2 + ( topLeftCornerTileY - centerTileY )**2 ) );
         
-        var centerId = tempXYToSpriteIndex( centerTileX, centerTileY );
-        
-        for ( var j = 0; j < m_mapTileTable.length; j++ )
-        {
-            m_mapTileTable[ j ].visible = false;
-        }
-        
         var radius = cornerToCenterTileDistance;
+        
+        MMAPSPRITE.hideAll();
         
         for ( var i = -radius; i <= radius; i++ )
         {
             for ( var j = -radius; j <= radius; j++ )
             {
-                var id = tempXYToSpriteIndex( centerTileX + i, centerTileY + j );
-                if ( id >= 0 && id < m_mapTileTable.length)
+                var tileX = centerTileX + i;
+                var tileY = centerTileY + j;
+                if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
                 {
-                    m_mapTileTable[ id ].visible = true;
+                    MMAPSPRITE.sprite( tileX, tileY ).visible = true;
                 }
             }
         }
