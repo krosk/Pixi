@@ -597,15 +597,35 @@ var onMapDisplayDragMove = function()
     
     public.draw = function()
     {
+        // remarks: one single call to texture change
+        // is likely to cause a complete refresh of the
+        // m_mapDisplay container, even if the
+        // texture change occurs outside viewport.
+        // under no texture change, calls to visible
+        // may affect performance.
+        // Container size raises the cost of refresh.
+        // Possible strategy is to keep sprite grain
+        // but reduce the size of containers and keep
+        // multiple containers
+        // a call to visible may refresh smaller
+        // container instead, leading to shorter
+        // delay
         
-        
-        MMAPSPRITE.hideAll();
+        changeRadiusRangeVisibility(
+            m_cameraCenterTileXRendered,
+            m_cameraCenterTileYRendered,
+            m_cameraRadiusRendered,
+            false );
         
         var currentCenterTileX = centerTileX();
         var currentCenterTileY = centerTileY();
         var currentRadius = drawingRadius();
         
-        changeRadiusRangeVisibility( currentCenterTileX, currentCenterTileY, currentRadius, true );
+        changeRadiusRangeVisibility(
+            currentCenterTileX,
+            currentCenterTileY,
+            currentRadius,
+            true );
         
         m_cameraMapXRendered = m_cameraMapX;
         m_cameraMapYRendered = m_cameraMapY;
