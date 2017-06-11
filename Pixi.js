@@ -186,8 +186,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 70;
-        m_mapTableSizeY = 70;
+        m_mapTableSizeX = 270;
+        m_mapTableSizeY = 270;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -248,7 +248,7 @@ var MMAPSPRITE = (function ()
     public.hasSprite = function ( tileX, tileY )
     {
         var i = hashIndex( tileX, tileY );
-        return !( typeof m_mapTileTable[i] === 'undefined' || m_mapTileTable[i] === null );
+        return !( typeof m_mapTileTable[ i ] === 'undefined' || m_mapTileTable[ i ] === null );
     }
     
     public.setSprite = function ( tileX, tileY, sprite )
@@ -304,6 +304,14 @@ var MMAPRENDER = (function ()
     var m_cameraMapY = 0;
     var m_cameraScaleX = 1;
     var m_cameraScaleY = 1;
+    
+    var m_cameraMapXRendered = 0;
+    var m_cameraMapYRendered = 0;
+    var m_cameraScaleXRendered = 1;
+    var m_cameraScaleYRendered = 1;
+    var m_cameraCenterTileXRendered = 0;
+    var m_cameraCenterTileYRendered = 0;
+    var m_cameraRadiusRendered = 1;
     
     public.initialize = function()
     {
@@ -552,23 +560,28 @@ var onMapDisplayDragMove = function()
         g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
     }
     
+    var centerTileX = function()
+    {
+        return Math.floor( screenToTileX( viewWidth() / 2, viewHeight() / 2 ) );
+    }
     
+    var centerTileY = function()
+    {
+        return Math.floor( screenToTileY( viewWidth() / 2, viewHeight() / 2 ) );
+    }
     
-    public.draw = function()
+    var drawingRadius = function()
     {
         var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
         var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
         
-        var centerTileX = Math.floor( screenToTileX( viewWidth() / 2, viewHeight() / 2 ) );
-        var centerTileY = Math.floor( screenToTileY( viewWidth() / 2, viewHeight() / 2 ) );
-        
-        var cornerToCenterTileDistance = Math.floor( Math.sqrt( ( topLeftCornerTileX - centerTileX )**2 + ( topLeftCornerTileY - centerTileY )**2 ) );
-        
-        var radius = cornerToCenterTileDistance;
-        
-        MMAPSPRITE.hideAll();
-        
-        for ( var i = -radius; i <= radius; i++ )
+        var cornerToCenterTileDistance = Math.floor( Math.sqrt( ( topLeftCornerTileX - centerTileX() )**2 + ( topLeftCornerTileY - centerTileY() )**2 ) );
+        return cornerToCenterTileDistance;
+    }
+    
+    var changeRadiusRangeVisibility = function ( centerTileX, centerTileY, radius, flag )
+    {
+         for ( var i = -radius; i <= radius; i++ )
         {
             for ( var j = -radius; j <= radius; j++ )
             {
@@ -576,13 +589,32 @@ var onMapDisplayDragMove = function()
                 var tileY = centerTileY + j;
                 if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
                 {
-                    MMAPSPRITE.sprite( tileX, tileY ).visible = true;
+                    MMAPSPRITE.sprite( tileX, tileY ).visible = flag;
                 }
             }
         }
     }
     
-    
+    public.draw = function()
+    {
+        
+        
+        MMAPSPRITE.hideAll();
+        
+        var currentCenterTileX = centerTileX();
+        var currentCenterTileY = centerTileY();
+        var currentRadius = drawingRadius();
+        
+        changeRadiusRangeVisibility( currentCenterTileX, currentCenterTileY, currentRadius, true );
+        
+        m_cameraMapXRendered = m_cameraMapX;
+        m_cameraMapYRendered = m_cameraMapY;
+        m_cameraScaleXRendered = m_cameraScaleX;
+        m_cameraScaleYRendered = m_cameraScaleY;
+        m_cameraCenterTileXRendered = currentCenterTileX;
+        m_cameraCenterTileYRendered = currentCenterTileY;
+        m_cameraRadiusRendered = currentRadius;
+    }
     
     return public;
 })();
