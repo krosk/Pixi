@@ -240,18 +240,45 @@ var MMAPSPRITECONTAINER = (function ()
     
     var m_mapSpriteContainer = [];
     
-    var m_containerSizeX = 1;
-    var m_containerSizeY = 1;
+    var m_containerSizeX = 5;
+    var m_containerSizeY = 3;
     
     var hashIndex = function ( tileX, tileY )
     {
         return Math.floor( tileX / m_containerSizeX ) * Math.floor( MMAPDATA.GetMapTableSizeY() / m_containerSizeY ) + Math.floor( tileY / m_containerSizeY );
     }
     
-    public.hasContainer = function ( tileX, tileY )
+    var container = function ( tileX, tileY )
+    {
+        var index = hashIndex( tileX, tileY );
+        if ( !hasContainer( tileX, tileY ) )
+        {
+            var mapDisplay = new PIXI.Container();
+    
+            mapDisplay.interactive = true;
+    
+            mapDisplay.on('pointerdown', MMAPRENDER.onMapDisplayDragStart);
+            mapDisplay.on('pointermove', MMAPRENDER.onMapDisplayDragMove);
+            mapDisplay.on('pointerupoutside', MMAPRENDER.onMapDisplayDragEnd);
+            mapDisplay.on('pointerup', MMAPRENDER.onMapDisplayDragEnd);
+        
+            g_app.stage.addChild( mapDisplay );
+            
+            m_mapSpriteContainer[ index ] = mapDisplay;
+        }
+        return m_mapSpriteContainer[ index ];
+    }
+    
+    var hasContainer = function ( tileX, tileY )
     {
         var i = hashIndex( tileX, tileY );
         return !( typeof m_mapSpriteContainer[ i ] === 'undefined' || m_mapSpriteContainer[ i ] === null );
+    }
+    
+    public.addSprite = function ( tileX, tileY, sprite )
+    {
+        var mapDisplay = container( tileX, tileY );
+        mapDisplay.addChild( sprite );
     }
     
     return public;
@@ -302,8 +329,6 @@ var MMAPRENDER = (function ()
 {
     var public = {};
     
-    var m_mapDisplay = null;
-    
     var TEXTURE_BASE_SIZE_X = 130;
     var TEXTURE_BASE_SIZE_Y = 66;
     
@@ -339,22 +364,8 @@ var MMAPRENDER = (function ()
     
     public.initialize = function()
     {
-        if (typeof m_mapDisplay === 'undefined' || m_mapDisplay === null)
-        {
-            m_mapDisplay = new PIXI.Container();
-    
-            m_mapDisplay.interactive = true;
-    
-            m_mapDisplay.on('pointerdown', onMapDisplayDragStart);
-            m_mapDisplay.on('pointermove', onMapDisplayDragMove);
-            m_mapDisplay.on('pointerupoutside', onMapDisplayDragEnd);
-            m_mapDisplay.on('pointerup', onMapDisplayDragEnd);
-        
-            g_app.stage.addChild(m_mapDisplay);
-            
-            m_cameraMapX = viewWidth() / 2;
-            m_cameraMapY = viewHeight() / 2;
-        }
+        m_cameraMapX = viewWidth() / 2;
+        m_cameraMapY = viewHeight() / 2;
     }
 
     var tileToMapX = function ( tileX, tileY )
@@ -421,7 +432,7 @@ var MMAPRENDER = (function ()
             sprite.y = tileToMapY( tileX, tileY ) - sprite.height + TEXTURE_BASE_SIZE_Y;
             sprite.visible = false;
         
-            m_mapDisplay.addChild( sprite );
+            MMAPSPRITECONTAINER.addSprite( tileX, tileY, sprite );
         }
         else
         {
@@ -506,7 +517,7 @@ var mapDisplayDragRefresh = function ( _this )
   }
 }
 
-var onMapDisplayDragStart = function ( event )
+public.onMapDisplayDragStart = function ( event )
 {
   mapDisplayDragCheck( this );
   this.touchData.push( event.data );
@@ -522,7 +533,7 @@ var onMapDisplayDragStart = function ( event )
   */
 }
 
-var onMapDisplayDragEnd = function ( event )
+public.onMapDisplayDragEnd = function ( event )
 {
   mapDisplayDragCheck( this );
   var touchIndex = this.touchData.indexOf( event.data );
@@ -534,7 +545,7 @@ var onMapDisplayDragEnd = function ( event )
   mapDisplayDragRefresh( this );
 }
 
-var onMapDisplayDragMove = function()
+public.onMapDisplayDragMove = function()
 {
     if ( this.dragging || this.zooming )
     {
