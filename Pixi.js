@@ -628,12 +628,20 @@ var onMapDisplayDragMove = function()
         // under no texture change, calls to visible
         // may affect performance.
         // Container size raises the cost of refresh.
-        // Possible strategy is to keep sprite grain
-        // but reduce the size of containers and keep
-        // multiple containers
-        // a call to visible may refresh smaller
-        // container instead, leading to shorter
-        // delay
+        // 1/ Possible strategy is to keep sprite grain
+        // but regroup them into multiple, smaller
+        // containers
+        // a call to visible or texture change may 
+        // refresh smaller container instead,
+        // leading to shorter delay
+        // has ability to turn containers into cached
+        // bitmap?
+        // 2/ the texture change is one of the
+        // factor that leads to fps slowdown
+        // consider performing texture change to
+        // elements that come into view, and not
+        // earlier. Impact may lead to stuttering during
+        // scrolls
         
         changeRadiusRangeVisibility(
             m_cameraCenterTileXRendered,
