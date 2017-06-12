@@ -363,6 +363,17 @@ var MMAPRENDER = (function ()
     var m_cameraCenterTileYRendered = 0;
     var m_cameraRadiusRendered = 1;
     
+    var m_touchData = [];		
+    var m_dragging = false;		
+    var m_zooming = false;		
+    var m_startScaleX = 1;		
+    var m_startScaleY = 1;		
+    var m_startDistance = 0;		
+    var m_startPointerScreenX = 0;		
+    var m_startPointerScreenY = 0;		
+    var m_startCameraMapX = 0;		
+    var m_startCameraMapY = 0;		
+    
     public.initialize = function()
     {
         m_cameraMapX = viewWidth() / 2;
@@ -441,145 +452,140 @@ var MMAPRENDER = (function ()
         }
     }
 
-    var mapDisplayDragCheck = function ( _this )
-    {
-        if (typeof _this.touchData === 'undefined' || _this.touchData === null)
-        {
-            _this.touchData = [];
-        }
-    }
-
     var getDistanceBetween = function ( pos1, pos2 )
     {
         return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
     }
+    
+    var mapSpriteContainerDragRefresh = function ( _this )
+    {
+        // require m_startScale updated
+        
+        var pointerPositionOnScreen = m_touchData[0].getLocalPosition( _this.parent );
+    
+        // touched screen location
+        var startPointerScreenX = pointerPositionOnScreen.x;
+        var startPointerScreenY = pointerPositionOnScreen.y;
+    
+        // initial image center
+        var startUnscaledPivotSpriteX = _this.pivot.x;
+        var startUnscaledPivotSpriteY = _this.pivot.y;
+    
+        // initial image position
+        var startUnscaledSpriteScreenX = _this.x;
+        var startUnscaledSpriteScreenY = _this.y;
+    
+        // initial origin point
+        var startUnscaledOriginX = startUnscaledSpriteScreenX - startUnscaledPivotSpriteX;
+        var startUnscaledOriginY = startUnscaledSpriteScreenY - startUnscaledPivotSpriteY;
+   
+        var startPointerScaledX = (startPointerScreenX - startUnscaledSpriteScreenX) / m_startScaleX + startUnscaledSpriteScreenX;
+        var startPointerScaledY = (startPointerScreenY - startUnscaledSpriteScreenY) / m_startScaleY + startUnscaledSpriteScreenY;
+    
+        // sprite center (pivot) is put on the touched location of sprite
+        _this.pivot.x = startPointerScaledX - startUnscaledOriginX;
+        _this.pivot.y = startPointerScaledY - startUnscaledOriginY;
+    
+        // sprite position, relative to sprite center, is set to the touched location
+        _this.x = startPointerScreenX;
+        _this.y = startPointerScreenY;
+    }
 
     var mapDisplayDragRefresh = function ( _this )
     {
-        mapDisplayDragCheck( _this );
-        if ( _this.touchData.length == 0 )
+        if ( m_touchData.length == 0 )
         {
-        _this.dragging = null;
-        _this.zooming = null;
-        _this.startScaleX = null;
-        _this.startScaleY = null;
-        _this.startDistance = null;
+            m_dragging = false;
+            m_zooming = false;
+            m_startScaleX = 1;
+            m_startScaleY = 1;
+            m_startDistance = 0;
         }
-        if ( _this.touchData.length > 0 )
+        if ( m_touchData.length > 0 )
         {
-            var pointerPositionOnScreen = _this.touchData[0].getLocalPosition( _this.parent );
-            
-            // touched screen location
-            var startPointerScreenX = pointerPositionOnScreen.x;
-            var startPointerScreenY = pointerPositionOnScreen.y;
-            
-            // initial image center
-            var startUnscaledPivotSpriteX = _this.pivot.x;
-            var startUnscaledPivotSpriteY = _this.pivot.y;
-            
-            // initial image position
-            var startUnscaledSpriteScreenX = _this.x;
-            var startUnscaledSpriteScreenY = _this.y;
-            
-            // initial origin point
-            var startUnscaledOriginX = startUnscaledSpriteScreenX - startUnscaledPivotSpriteX;
-            var startUnscaledOriginY = startUnscaledSpriteScreenY - startUnscaledPivotSpriteY;
-            
             // remember initial scale
-            _this.startScaleX = _this.scale.x;
-            _this.startScaleY = _this.scale.y;
-           
-            var startPointerScaledX = (startPointerScreenX - startUnscaledSpriteScreenX) / _this.startScaleX + startUnscaledSpriteScreenX;
-            var startPointerScaledY = (startPointerScreenY - startUnscaledSpriteScreenY) / _this.startScaleY + startUnscaledSpriteScreenY;
+            m_startScaleX = _this.scale.x;
+            m_startScaleY = _this.scale.y;
             
-            // sprite center (pivot) is put on the touched location of sprite
-            _this.pivot.x = startPointerScaledX - startUnscaledOriginX;
-            _this.pivot.y = startPointerScaledY - startUnscaledOriginY;
+            var pointerPositionOnScreen = m_touchData[0].getLocalPosition( _this.parent );
             
-            // sprite position, relative to sprite center, is set to the touched location
-            _this.x = startPointerScreenX;
-            _this.y = startPointerScreenY;
+            m_dragging = true;
+            m_zooming = false;
+            m_startDistance = 0;
+    
+            m_startPointerScreenX = pointerPositionOnScreen.x;
+            m_startPointerScreenY = pointerPositionOnScreen.y;
+            m_startCameraMapX = m_cameraMapX;
+            m_startCameraMapY = m_cameraMapY;
             
-            _this.dragging = true;
-            _this.zooming = false;
-            _this.startDistance = 0;
-            
-            _this.startPointerScreenX = pointerPositionOnScreen.x;
-            _this.startPointerScreenY = pointerPositionOnScreen.y;
-            _this.startCameraMapX = m_cameraMapX;
-            _this.startCameraMapY = m_cameraMapY;
+            mapSpriteContainerDragRefresh( _this );
         }
-        if ( _this.touchData.length > 1 )
+        if ( m_touchData.length > 1 )
         {
-            var pos1 = _this.touchData[0].getLocalPosition( _this.parent );
-            var pos2 = _this.touchData[1].getLocalPosition( _this.parent );
-            _this.startDistance = getDistanceBetween( pos1, pos2 );
-            _this.zooming = true;
-        }
+            var pos1 = m_touchData[0].getLocalPosition( _this.parent );
+            var pos2 = m_touchData[1].getLocalPosition( _this.parent );
+            m_startDistance = getDistanceBetween( pos1, pos2 );
+            m_zooming = true;
+         }
     }
-
+    
     public.onMapDisplayDragStart = function ( event )
     {
-        mapDisplayDragCheck( this );
-        this.touchData.push( event.data );
-        //console.log( "added " + event.data.identifier );
+        m_touchData.push( event.data );
         mapDisplayDragRefresh( this );
     }
 
     public.onMapDisplayDragEnd = function ( event )
     {
-        mapDisplayDragCheck( this );
-        var touchIndex = this.touchData.indexOf( event.data );
+        var touchIndex = m_touchData.indexOf( event.data );
         if ( touchIndex >= 0 )
         {
-            this.touchData.splice( touchIndex, 1 );
+            m_touchData.splice( touchIndex, 1 );
         }
-        //console.log( "removed " + event.data.identifier );
         mapDisplayDragRefresh( this );
     }
 
     public.onMapDisplayDragMove = function()
     {
-        if ( this.dragging || this.zooming )
+        if ( m_dragging || m_zooming )
         {
             updateCamera( this );
         }
         // during touch refresh
-        if ( this.dragging )
+        if ( m_dragging )
         {
-            //console.log('move');
-            var newPosition = this.touchData[0].getLocalPosition( this.parent );
+            var newPosition = m_touchData[0].getLocalPosition( this.parent );
             // upon dragging, image center is always below finger
             this.x = newPosition.x;
             this.y = newPosition.y;
         }
-        if ( this.zooming )
+        if ( m_zooming )
         {
-            var position1 = this.touchData[0].getLocalPosition( this.parent );
-            var position2 = this.touchData[1].getLocalPosition( this.parent );
+            var position1 = m_touchData[0].getLocalPosition( this.parent );
+            var position2 = m_touchData[1].getLocalPosition( this.parent );
             var newDistance = getDistanceBetween( position1, position2 );
-            var ratio = newDistance / this.startDistance;
-            this.scale.x = this.startScaleX * ratio;
-            this.scale.y = this.startScaleY * ratio;
+            var ratio = newDistance / m_startDistance;
+            this.scale.x = m_startScaleX * ratio;
+            this.scale.y = m_startScaleY * ratio;
         }
     }
-
+    
     var updateCamera = function( _this )
     {
-        var pointerScreen = _this.touchData[0].getLocalPosition( _this.parent );
-        if ( _this.zooming )
+        var pointerScreen = m_touchData[0].getLocalPosition( _this.parent );
+        if ( m_zooming )
         {
-            var position2 = _this.touchData[1].getLocalPosition( _this.parent );
+            var position2 = m_touchData[1].getLocalPosition( _this.parent );
             var newDistance = getDistanceBetween( pointerScreen, position2 );
-            var ratio = newDistance / _this.startDistance;
-            m_cameraScaleX = _this.startScaleX * ratio;
-            m_cameraScaleY = _this.startScaleY * ratio;
+            var ratio = newDistance / m_startDistance;
+            m_cameraScaleX = m_startScaleX * ratio;
+            m_cameraScaleY = m_startScaleY * ratio;
         }
         
-        var startCameraToPointerScreenX = _this.startPointerScreenX - cameraScreenX();
-        var startCameraToPointerScreenY = _this.startPointerScreenY - cameraScreenY();
-        var startPointerMapX = _this.startCameraMapX + startCameraToPointerScreenX / _this.startScaleX;
-        var startPointerMapY = _this.startCameraMapY + startCameraToPointerScreenY / _this.startScaleY;
+        var startCameraToPointerScreenX = m_startPointerScreenX - cameraScreenX();
+        var startCameraToPointerScreenY = m_startPointerScreenY - cameraScreenY();
+        var startPointerMapX = m_startCameraMapX + startCameraToPointerScreenX / m_startScaleX;
+        var startPointerMapY = m_startCameraMapY + startCameraToPointerScreenY / m_startScaleY;
         
         // map supposedly moves to pointerMap so cameraMap changes accordingly
         m_cameraMapX = startPointerMapX + ( cameraScreenX() - pointerScreen.x ) / m_cameraScaleX;
