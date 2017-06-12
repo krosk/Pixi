@@ -31,11 +31,11 @@ function loadHtmlWrapper( webview )
 
 function OnReady()
 {
-  g_stats = new Stats();
+    g_stats = new Stats();
   
-  g_app = new PIXI.Application(window.innerWidth, window.innerHeight);
+    g_app = new PIXI.Application(window.innerWidth, window.innerHeight);
   
-  //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+    //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
 	var amount = (g_app.renderer instanceof PIXI.WebGLRenderer) ? 100 : 5;
 
@@ -76,33 +76,33 @@ function OnReady()
 
 function LoaderProgressHandler(loader, resource)
 {
-  console.log(resource.url);
-  console.log(loader.progress);
+    console.log(resource.url);
+    console.log(loader.progress);
 }
 
 function LoaderSetup()
 {
-  console.log("image loaded, testingScene" );
-  MMAP.initialize();
-  g_state = MMAP.mapState;
+    console.log("image loaded, testingScene" );
+    MMAP.initialize();
+    g_state = MMAP.mapState;
 }
 
 function Resize()
 {
-  var width = window.innerWidth;
-  var height = window.innerHeight;
+    var width = window.innerWidth;
+    var height = window.innerHeight;
   
-  g_app.renderer.view.style.left = 0;
-  g_app.renderer.view.style.top = 0;
-  g_app.renderer.resize(width, height);
+    g_app.renderer.view.style.left = 0;
+    g_app.renderer.view.style.top = 0;
+    g_app.renderer.resize(width, height);
   
-  g_counter.style.left = 100 + "px";
+    g_counter.style.left = 100 + "px";
 	g_counter.style.top = 0 + "px";
 }
 
 function GetTextureName(id)
 {
-  return  "cityTiles_" + ("00" + id).slice(-3) + ".png";
+    return  "cityTiles_" + ("00" + id).slice(-3) + ".png";
 }
 
 
@@ -111,25 +111,25 @@ function GetTextureName(id)
 
 function WaitingState()
 {
-  // do nothing, wait for loader
+    // do nothing, wait for loader
 }
 
 var g_frameCounter = 0;
 
 function TestRenderState()
 {
-  //console.log(g_frameCounter);
+    //console.log(g_frameCounter);
   
-  var randomId = g_frameCounter % 128;
-  var textureName = GetTextureName(randomId);
+    var randomId = g_frameCounter % 128;
+    var textureName = GetTextureName(randomId);
   
-  var tileTextureCache = PIXI.utils.TextureCache[textureName];
+    var tileTextureCache = PIXI.utils.TextureCache[textureName];
   
-  var sprite = new PIXI.Sprite(tileTextureCache);
-  sprite.x = Math.floor(Math.random() * g_app.renderer.width);
-  sprite.y = Math.floor(Math.random() * g_app.renderer.height);
-  
-  g_app.stage.addChild(sprite);
+    var sprite = new PIXI.Sprite(tileTextureCache);
+    sprite.x = Math.floor(Math.random() * g_app.renderer.width);
+    sprite.y = Math.floor(Math.random() * g_app.renderer.height);
+    
+    g_app.stage.addChild(sprite);
 }
 
 var MMAP = (function ()
@@ -441,136 +441,128 @@ var MMAPRENDER = (function ()
         }
     }
 
-var mapDisplayDragCheck = function ( _this )
-{
-    if (typeof _this.touchData === 'undefined' || _this.touchData === null)
+    var mapDisplayDragCheck = function ( _this )
     {
-        _this.touchData = [];
+        if (typeof _this.touchData === 'undefined' || _this.touchData === null)
+        {
+            _this.touchData = [];
+        }
     }
-}
 
-var getDistanceBetween = function ( pos1, pos2 )
-{
-    return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
-}
-
-var mapDisplayDragRefresh = function ( _this )
-{
-  mapDisplayDragCheck( _this );
-  if ( _this.touchData.length == 0 )
-  {
-    _this.dragging = null;
-    _this.zooming = null;
-    _this.startScaleX = null;
-    _this.startScaleY = null;
-    _this.startDistance = null;
-  }
-  if ( _this.touchData.length > 0 )
-  {
-    var pointerPositionOnScreen = _this.touchData[0].getLocalPosition( _this.parent );
-    
-    // touched screen location
-    var startPointerScreenX = pointerPositionOnScreen.x;
-    var startPointerScreenY = pointerPositionOnScreen.y;
-    
-    // initial image center
-    var startUnscaledPivotSpriteX = _this.pivot.x;
-    var startUnscaledPivotSpriteY = _this.pivot.y;
-    
-    // initial image position
-    var startUnscaledSpriteScreenX = _this.x;
-    var startUnscaledSpriteScreenY = _this.y;
-    
-    // initial origin point
-    var startUnscaledOriginX = startUnscaledSpriteScreenX - startUnscaledPivotSpriteX;
-    var startUnscaledOriginY = startUnscaledSpriteScreenY - startUnscaledPivotSpriteY;
-    
-    // remember initial scale
-    _this.startScaleX = _this.scale.x;
-    _this.startScaleY = _this.scale.y;
-   
-    var startPointerScaledX = (startPointerScreenX - startUnscaledSpriteScreenX) / _this.startScaleX + startUnscaledSpriteScreenX;
-    var startPointerScaledY = (startPointerScreenY - startUnscaledSpriteScreenY) / _this.startScaleY + startUnscaledSpriteScreenY;
-    
-    // sprite center (pivot) is put on the touched location of sprite
-    _this.pivot.x = startPointerScaledX - startUnscaledOriginX;
-    _this.pivot.y = startPointerScaledY - startUnscaledOriginY;
-    
-    // sprite position, relative to sprite center, is set to the touched location
-    _this.x = startPointerScreenX;
-    _this.y = startPointerScreenY;
-    
-    _this.dragging = true;
-    _this.zooming = false;
-    _this.startDistance = 0;
-    
-    _this.startPointerScreenX = pointerPositionOnScreen.x;
-    _this.startPointerScreenY = pointerPositionOnScreen.y;
-    _this.startCameraMapX = m_cameraMapX;
-    _this.startCameraMapY = m_cameraMapY;
-  }
-  if ( _this.touchData.length > 1 )
-  {
-    var pos1 = _this.touchData[0].getLocalPosition( _this.parent );
-    var pos2 = _this.touchData[1].getLocalPosition( _this.parent );
-    _this.startDistance = getDistanceBetween( pos1, pos2 );
-    _this.zooming = true;
-  }
-}
-
-public.onMapDisplayDragStart = function ( event )
-{
-  mapDisplayDragCheck( this );
-  this.touchData.push( event.data );
-  //console.log( "added " + event.data.identifier );
-  mapDisplayDragRefresh( this );
-  
-  /*
-  var screenX = event.data.getLocalPosition( this.parent ).x;
-  var screenY = event.data.getLocalPosition( this.parent ).y
-  var tileX = screenToTileX ( screenX, screenY );
-  var tileY = screenToTileY ( screenX, screenY );
-  console.log( tileX + " " + tileY );
-  */
-}
-
-public.onMapDisplayDragEnd = function ( event )
-{
-  mapDisplayDragCheck( this );
-  var touchIndex = this.touchData.indexOf( event.data );
-  if ( touchIndex >= 0 )
-  {
-    this.touchData.splice( touchIndex, 1 );
-  }
-  //console.log( "removed " + event.data.identifier );
-  mapDisplayDragRefresh( this );
-}
-
-public.onMapDisplayDragMove = function()
-{
-    if ( this.dragging || this.zooming )
+    var getDistanceBetween = function ( pos1, pos2 )
     {
-        updateCamera( this );
+        return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
     }
-    // during touch refresh
-    if ( this.dragging )
+
+    var mapDisplayDragRefresh = function ( _this )
     {
-        //console.log('move');
-        var newPosition = this.touchData[0].getLocalPosition( this.parent );
-        // upon dragging, image center is always below finger
-        this.x = newPosition.x;
-        this.y = newPosition.y;
+        mapDisplayDragCheck( _this );
+        if ( _this.touchData.length == 0 )
+        {
+        _this.dragging = null;
+        _this.zooming = null;
+        _this.startScaleX = null;
+        _this.startScaleY = null;
+        _this.startDistance = null;
+        }
+        if ( _this.touchData.length > 0 )
+        {
+            var pointerPositionOnScreen = _this.touchData[0].getLocalPosition( _this.parent );
+            
+            // touched screen location
+            var startPointerScreenX = pointerPositionOnScreen.x;
+            var startPointerScreenY = pointerPositionOnScreen.y;
+            
+            // initial image center
+            var startUnscaledPivotSpriteX = _this.pivot.x;
+            var startUnscaledPivotSpriteY = _this.pivot.y;
+            
+            // initial image position
+            var startUnscaledSpriteScreenX = _this.x;
+            var startUnscaledSpriteScreenY = _this.y;
+            
+            // initial origin point
+            var startUnscaledOriginX = startUnscaledSpriteScreenX - startUnscaledPivotSpriteX;
+            var startUnscaledOriginY = startUnscaledSpriteScreenY - startUnscaledPivotSpriteY;
+            
+            // remember initial scale
+            _this.startScaleX = _this.scale.x;
+            _this.startScaleY = _this.scale.y;
+           
+            var startPointerScaledX = (startPointerScreenX - startUnscaledSpriteScreenX) / _this.startScaleX + startUnscaledSpriteScreenX;
+            var startPointerScaledY = (startPointerScreenY - startUnscaledSpriteScreenY) / _this.startScaleY + startUnscaledSpriteScreenY;
+            
+            // sprite center (pivot) is put on the touched location of sprite
+            _this.pivot.x = startPointerScaledX - startUnscaledOriginX;
+            _this.pivot.y = startPointerScaledY - startUnscaledOriginY;
+            
+            // sprite position, relative to sprite center, is set to the touched location
+            _this.x = startPointerScreenX;
+            _this.y = startPointerScreenY;
+            
+            _this.dragging = true;
+            _this.zooming = false;
+            _this.startDistance = 0;
+            
+            _this.startPointerScreenX = pointerPositionOnScreen.x;
+            _this.startPointerScreenY = pointerPositionOnScreen.y;
+            _this.startCameraMapX = m_cameraMapX;
+            _this.startCameraMapY = m_cameraMapY;
+        }
+        if ( _this.touchData.length > 1 )
+        {
+            var pos1 = _this.touchData[0].getLocalPosition( _this.parent );
+            var pos2 = _this.touchData[1].getLocalPosition( _this.parent );
+            _this.startDistance = getDistanceBetween( pos1, pos2 );
+            _this.zooming = true;
+        }
     }
-    if ( this.zooming )
+
+    public.onMapDisplayDragStart = function ( event )
     {
-        var position1 = this.touchData[0].getLocalPosition( this.parent );
-        var position2 = this.touchData[1].getLocalPosition( this.parent );
-        var newDistance = getDistanceBetween( position1, position2 );
-        var ratio = newDistance / this.startDistance;
-        this.scale.x = this.startScaleX * ratio;
-        this.scale.y = this.startScaleY * ratio;
+        mapDisplayDragCheck( this );
+        this.touchData.push( event.data );
+        //console.log( "added " + event.data.identifier );
+        mapDisplayDragRefresh( this );
     }
-}
+
+    public.onMapDisplayDragEnd = function ( event )
+    {
+        mapDisplayDragCheck( this );
+        var touchIndex = this.touchData.indexOf( event.data );
+        if ( touchIndex >= 0 )
+        {
+            this.touchData.splice( touchIndex, 1 );
+        }
+        //console.log( "removed " + event.data.identifier );
+        mapDisplayDragRefresh( this );
+    }
+
+    public.onMapDisplayDragMove = function()
+    {
+        if ( this.dragging || this.zooming )
+        {
+            updateCamera( this );
+        }
+        // during touch refresh
+        if ( this.dragging )
+        {
+            //console.log('move');
+            var newPosition = this.touchData[0].getLocalPosition( this.parent );
+            // upon dragging, image center is always below finger
+            this.x = newPosition.x;
+            this.y = newPosition.y;
+        }
+        if ( this.zooming )
+        {
+            var position1 = this.touchData[0].getLocalPosition( this.parent );
+            var position2 = this.touchData[1].getLocalPosition( this.parent );
+            var newDistance = getDistanceBetween( position1, position2 );
+            var ratio = newDistance / this.startDistance;
+            this.scale.x = this.startScaleX * ratio;
+            this.scale.y = this.startScaleY * ratio;
+        }
+    }
 
     var updateCamera = function( _this )
     {
@@ -687,10 +679,10 @@ public.onMapDisplayDragMove = function()
 
 function Update()
 {
-  g_stats.begin();
-  g_state();
-  g_stats.end();
-  g_frameCounter++;
+    g_stats.begin();
+    g_state();
+    g_stats.end();
+    g_frameCounter++;
 }
 
 var MUTILS = (function ()
