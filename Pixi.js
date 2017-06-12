@@ -186,8 +186,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 270;
-        m_mapTableSizeY = 270;
+        m_mapTableSizeX = 300;
+        m_mapTableSizeY = 300;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -240,7 +240,7 @@ var MMAPSPRITECONTAINER = (function ()
     
     var m_mapSpriteContainer = [];
     
-    var m_containerSizeX = 5;
+    var m_containerSizeX = 3;
     var m_containerSizeY = 3;
     
     var hashIndex = function ( tileX, tileY )
@@ -248,7 +248,7 @@ var MMAPSPRITECONTAINER = (function ()
         return Math.floor( tileX / m_containerSizeX ) * Math.floor( MMAPDATA.GetMapTableSizeY() / m_containerSizeY ) + Math.floor( tileY / m_containerSizeY );
     }
     
-    var container = function ( tileX, tileY )
+    public.container = function ( tileX, tileY )
     {
         var index = hashIndex( tileX, tileY );
         if ( !hasContainer( tileX, tileY ) )
@@ -256,6 +256,7 @@ var MMAPSPRITECONTAINER = (function ()
             var mapDisplay = new PIXI.Container();
     
             mapDisplay.interactive = true;
+            mapDisplay.visible = false;
     
             mapDisplay.on('pointerdown', MMAPRENDER.onMapDisplayDragStart);
             mapDisplay.on('pointermove', MMAPRENDER.onMapDisplayDragMove);
@@ -277,7 +278,7 @@ var MMAPSPRITECONTAINER = (function ()
     
     public.addSprite = function ( tileX, tileY, sprite )
     {
-        var mapDisplay = container( tileX, tileY );
+        var mapDisplay = public.container( tileX, tileY );
         mapDisplay.addChild( sprite );
     }
     
@@ -430,7 +431,7 @@ var MMAPRENDER = (function ()
             // note that the pivot point is 0, 0 by default
             sprite.x = tileToMapX( tileX, tileY ) - sprite.width / 2;
             sprite.y = tileToMapY( tileX, tileY ) - sprite.height + TEXTURE_BASE_SIZE_Y;
-            sprite.visible = false;
+            sprite.visible = true;
         
             MMAPSPRITECONTAINER.addSprite( tileX, tileY, sprite );
         }
@@ -624,7 +625,7 @@ public.onMapDisplayDragMove = function()
                 var tileY = centerTileY + j;
                 if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
                 {
-                    MMAPSPRITE.sprite( tileX, tileY ).visible = flag;
+                    MMAPSPRITECONTAINER.container( tileX, tileY ).visible = flag;
                 }
             }
         }
@@ -647,6 +648,8 @@ public.onMapDisplayDragMove = function()
         // leading to shorter delay
         // has ability to turn containers into cached
         // bitmap?
+        // note: better performance reached when
+        // visibility is controlled at higher level
         // 2/ the texture change is one of the
         // factor that leads to fps slowdown
         // consider performing texture change to
