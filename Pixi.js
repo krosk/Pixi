@@ -234,6 +234,30 @@ var MMAPDATA = (function ()
     return public;
 })();
 
+var MMAPSPRITECONTAINER = (function ()
+{
+    var public = {};
+    
+    var m_mapSpriteContainer = [];
+    
+    var m_containerSizeX = 1;
+    var m_containerSizeY = 1;
+    
+    var hashIndex = function ( tileX, tileY )
+    {
+        return Math.floor( tileX / m_containerSizeX ) * Math.floor( MMAPDATA.GetMapTableSizeY() / m_containerSizeY ) + Math.floor( tileY / m_containerSizeY );
+    }
+    
+    public.hasContainer = function ( tileX, tileY )
+    {
+        var i = hashIndex( tileX, tileY );
+        return !( typeof m_mapSpriteContainer[ i ] === 'undefined' || m_mapSpriteContainer[ i ] === null );
+    }
+    
+    return public;
+    
+})();
+
 var MMAPSPRITE = (function ()
 {
     var public = {};
