@@ -97,7 +97,7 @@ function Resize()
     g_app.renderer.resize(width, height);
   
     g_counter.style.left = 100 + "px";
-	g_counter.style.top = 0 + "px";
+	  g_counter.style.top = 0 + "px";
 }
 
 function GetTextureName(id)
@@ -186,8 +186,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 300;
-        m_mapTableSizeY = 300;
+        m_mapTableSizeX = 100;
+        m_mapTableSizeY = 100;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -240,8 +240,8 @@ var MMAPSPRITECONTAINER = (function ()
     
     var m_mapSpriteContainer = [];
     
-    var m_containerSizeX = 3;
-    var m_containerSizeY = 3;
+    var m_containerSizeX = 5;
+    var m_containerSizeY = 5;
     
     var hashIndex = function ( tileX, tileY )
     {
@@ -262,7 +262,7 @@ var MMAPSPRITECONTAINER = (function ()
             mapDisplay.on('pointermove', MMAPRENDER.onMapDisplayDragMove);
             mapDisplay.on('pointerupoutside', MMAPRENDER.onMapDisplayDragEnd);
             mapDisplay.on('pointerup', MMAPRENDER.onMapDisplayDragEnd);
-        
+            
             g_app.stage.addChild( mapDisplay );
             
             m_mapSpriteContainer[ index ] = mapDisplay;
@@ -280,6 +280,15 @@ var MMAPSPRITECONTAINER = (function ()
     {
         var mapDisplay = public.container( tileX, tileY );
         mapDisplay.addChild( sprite );
+    }
+    
+    public.each = function ( callback )
+    {
+        var keys = Object.keys( m_mapSpriteContainer );
+        for ( key in keys )
+        {
+            callback( m_mapSpriteContainer[ key ] );
+        }
     }
     
     return public;
@@ -376,8 +385,8 @@ var MMAPRENDER = (function ()
     
     public.initialize = function()
     {
-        m_cameraMapX = viewWidth() / 2;
-        m_cameraMapY = viewHeight() / 2;
+        m_cameraMapX = 0;
+        m_cameraMapY = 0;
     }
 
     var tileToMapX = function ( tileX, tileY )
@@ -456,40 +465,6 @@ var MMAPRENDER = (function ()
     {
         return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
     }
-    
-    var mapSpriteContainerDragRefresh = function ( _this )
-    {
-        // require m_startScale updated
-        
-        var pointerPositionOnScreen = m_touchData[0].getLocalPosition( _this.parent );
-    
-        // touched screen location
-        var startPointerScreenX = pointerPositionOnScreen.x;
-        var startPointerScreenY = pointerPositionOnScreen.y;
-    
-        // initial image center
-        var startUnscaledPivotSpriteX = _this.pivot.x;
-        var startUnscaledPivotSpriteY = _this.pivot.y;
-    
-        // initial image position
-        var startUnscaledSpriteScreenX = _this.x;
-        var startUnscaledSpriteScreenY = _this.y;
-    
-        // initial origin point
-        var startUnscaledOriginX = startUnscaledSpriteScreenX - startUnscaledPivotSpriteX;
-        var startUnscaledOriginY = startUnscaledSpriteScreenY - startUnscaledPivotSpriteY;
-   
-        var startPointerScaledX = (startPointerScreenX - startUnscaledSpriteScreenX) / m_startScaleX + startUnscaledSpriteScreenX;
-        var startPointerScaledY = (startPointerScreenY - startUnscaledSpriteScreenY) / m_startScaleY + startUnscaledSpriteScreenY;
-    
-        // sprite center (pivot) is put on the touched location of sprite
-        _this.pivot.x = startPointerScaledX - startUnscaledOriginX;
-        _this.pivot.y = startPointerScaledY - startUnscaledOriginY;
-    
-        // sprite position, relative to sprite center, is set to the touched location
-        _this.x = startPointerScreenX;
-        _this.y = startPointerScreenY;
-    }
 
     var mapDisplayDragRefresh = function ( _this )
     {
@@ -517,8 +492,6 @@ var MMAPRENDER = (function ()
             m_startPointerScreenY = pointerPositionOnScreen.y;
             m_startCameraMapX = m_cameraMapX;
             m_startCameraMapY = m_cameraMapY;
-            
-            mapSpriteContainerDragRefresh( _this );
         }
         if ( m_touchData.length > 1 )
         {
@@ -533,6 +506,7 @@ var MMAPRENDER = (function ()
     {
         m_touchData.push( event.data );
         mapDisplayDragRefresh( this );
+        //console.log('touch ' + event.data.identifier );
     }
 
     public.onMapDisplayDragEnd = function ( event )
@@ -543,6 +517,7 @@ var MMAPRENDER = (function ()
             m_touchData.splice( touchIndex, 1 );
         }
         mapDisplayDragRefresh( this );
+        //console.log('untouch ' + event.data.identifier );
     }
 
     public.onMapDisplayDragMove = function()
@@ -550,23 +525,6 @@ var MMAPRENDER = (function ()
         if ( m_dragging || m_zooming )
         {
             updateCamera( this );
-        }
-        // during touch refresh
-        if ( m_dragging )
-        {
-            var newPosition = m_touchData[0].getLocalPosition( this.parent );
-            // upon dragging, image center is always below finger
-            this.x = newPosition.x;
-            this.y = newPosition.y;
-        }
-        if ( m_zooming )
-        {
-            var position1 = m_touchData[0].getLocalPosition( this.parent );
-            var position2 = m_touchData[1].getLocalPosition( this.parent );
-            var newDistance = getDistanceBetween( position1, position2 );
-            var ratio = newDistance / m_startDistance;
-            this.scale.x = m_startScaleX * ratio;
-            this.scale.y = m_startScaleY * ratio;
         }
     }
     
@@ -582,14 +540,9 @@ var MMAPRENDER = (function ()
             m_cameraScaleY = m_startScaleY * ratio;
         }
         
-        var startCameraToPointerScreenX = m_startPointerScreenX - cameraScreenX();
-        var startCameraToPointerScreenY = m_startPointerScreenY - cameraScreenY();
-        var startPointerMapX = m_startCameraMapX + startCameraToPointerScreenX / m_startScaleX;
-        var startPointerMapY = m_startCameraMapY + startCameraToPointerScreenY / m_startScaleY;
-        
-        // map supposedly moves to pointerMap so cameraMap changes accordingly
-        m_cameraMapX = startPointerMapX + ( cameraScreenX() - pointerScreen.x ) / m_cameraScaleX;
-        m_cameraMapY = startPointerMapY + ( cameraScreenY() - pointerScreen.y ) / m_cameraScaleY;
+        // camera moves according to differential movement of pointer
+        m_cameraMapX = m_startCameraMapX + ( m_startPointerScreenX - pointerScreen.x ) / m_cameraScaleX;
+        m_cameraMapY = m_startCameraMapY + ( m_startPointerScreenY - pointerScreen.y ) / m_cameraScaleY;
         
         g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
     }
@@ -615,7 +568,7 @@ var MMAPRENDER = (function ()
     
     var changeRadiusRangeVisibility = function ( centerTileX, centerTileY, radius, flag )
     {
-         for ( var i = -radius; i <= radius; i++ )
+        for ( var i = -radius; i <= radius; i++ )
         {
             for ( var j = -radius; j <= radius; j++ )
             {
@@ -627,6 +580,34 @@ var MMAPRENDER = (function ()
                 }
             }
         }
+    }
+    
+    var changeRadiusRangePosition = function ( centerTileX, centerTileY, radius )
+    {
+        for ( var i = -radius; i <= radius; i++ )
+        {
+            for ( var j = -radius; j <= radius; j++ )
+            {
+                var tileX = centerTileX + i;
+                var tileY = centerTileY + j;
+                if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
+                {
+                    var container = MMAPSPRITECONTAINER.container( tileX, tileY );
+                    mapSpriteContainerDrawRefresh( container );
+                }
+            }
+        }
+    }
+    
+    var mapSpriteContainerDrawRefresh = function ( _this )
+    {
+        // note: this.x and y are screen
+        _this.pivot.x = 0;
+        _this.pivot.y = 0;
+        _this.x = -m_cameraMapX * m_cameraScaleX + viewWidth() / 2;
+        _this.y = -m_cameraMapY * m_cameraScaleY + viewHeight() / 2;
+        _this.scale.x = m_cameraScaleX;
+        _this.scale.y = m_cameraScaleY;
     }
     
     public.draw = function()
@@ -670,6 +651,11 @@ var MMAPRENDER = (function ()
             currentCenterTileY,
             currentRadius,
             true );
+            
+        changeRadiusRangePosition(
+            currentCenterTileX,
+            currentCenterTileY,
+            currentRadius );
         
         m_cameraMapXRendered = m_cameraMapX;
         m_cameraMapYRendered = m_cameraMapY;
