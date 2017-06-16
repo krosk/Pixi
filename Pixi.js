@@ -239,24 +239,29 @@ var MMAPDATA = (function ()
     return public;
 })();
 
-var MMAPSPRITECONTAINER = (function ()
+// a map batch regroups multiple tiles
+// abstraction layer for pixi container
+// Has a dependency to MMAPDATA for the indexing part?
+var MMAPBATCH = (function ()
 {
     var public = {};
     
-    var m_mapSpriteContainer = [];
+    var m_mapSpriteBatch = [];
     
-    var m_containerSizeX = 5;
-    var m_containerSizeY = 5;
+    var BATCH_SIZE_X = 5;
+    var BATCH_SIZE_Y = 5;
     
     var hashIndex = function ( tileX, tileY )
     {
-        return Math.floor( tileX / m_containerSizeX ) * Math.floor( MMAPDATA.GetMapTableSizeY() / m_containerSizeY ) + Math.floor( tileY / m_containerSizeY );
+        return Math.floor( tileX / BATCH_SIZE_X ) * Math.floor( MMAPDATA.GetMapTableSizeY() / BATCH_SIZE_Y ) + Math.floor( tileY / BATCH_SIZE_Y );
     }
     
-    public.container = function ( tileX, tileY )
+    // create one empty if none
+    // excepted if coordinates are negative
+    var getBatch = function( tileX, tileY )
     {
         var index = hashIndex( tileX, tileY );
-        if ( !hasContainer( tileX, tileY ) )
+        if ( !hasBatch( tileX, tileY ) )
         {
             var mapDisplay = new PIXI.Container();
     
@@ -270,51 +275,64 @@ var MMAPSPRITECONTAINER = (function ()
             
             g_app.stage.addChild( mapDisplay );
             
-            m_mapSpriteContainer[ index ] = mapDisplay;
+            m_mapSpriteBatch[ index ] = mapDisplay;
+            
+            console.log('created container for ' + tileX + ',' + tileY);
         }
-        return m_mapSpriteContainer[ index ];
+        return m_mapSpriteBatch[ index ];
     }
     
-    var hasContainer = function ( tileX, tileY )
+    var hasBatch = function ( tileX, tileY )
     {
         var i = hashIndex( tileX, tileY );
-        return !( typeof m_mapSpriteContainer[ i ] === 'undefined' || m_mapSpriteContainer[ i ] === null );
+        return !( typeof m_mapSpriteBatch[ i ] === 'undefined' || m_mapSpriteBatch[ i ] === null );
     }
     
     public.addSprite = function ( tileX, tileY, sprite )
     {
-        var mapDisplay = public.container( tileX, tileY );
-        mapDisplay.addChild( sprite );
-    }
-    
-    public.each = function ( callback )
-    {
-        var keys = Object.keys( m_mapSpriteContainer );
-        for ( key in keys )
-        {
-            callback( m_mapSpriteContainer[ key ] );
-        }
+        getBatch( tileX, tileY ).addChild( sprite );
     }
     
     public.tileXToStartTileX = function( tileX )
     {
-        return Math.floor( Math.floor( tileX ) / m_containerSizeX ) * m_containerSizeX;
+        return Math.floor( Math.floor( tileX ) / BATCH_SIZE_X ) * BATCH_SIZE_X;
     }
     
     public.tileYToStartTileY = function( tileY )
     {
-        return Math.floor( Math.floor( tileY ) / m_containerSizeY ) * m_containerSizeY;
+        return Math.floor( Math.floor( tileY ) / BATCH_SIZE_Y ) * BATCH_SIZE_Y;
     }
     
     // end tile excluded
     public.tileXToEndTileX = function( tileX )
     {
-        return public.tileXToStartTileX( tileX ) + m_containerSizeX;
+        return public.tileXToStartTileX( tileX ) + BATCH_SIZE_X;
     }
     
     public.tileXToEndTileY = function( tileY )
     {
-        return public.tileYToStartTileY( tileY ) + m_containerSizeY;
+        return public.tileYToStartTileY( tileY ) + BATCH_SIZE_Y;
+    }
+    
+    public.setBatchVisible = function( tileX, tileY, flag )
+    {
+        getBatch( tileX, tileY ).visible = flag;
+    }
+    
+    public.setBatchPosition = function( tileX, tileY, x, y )
+    {
+        var batch = getBatch( tileX, tileY );
+        batch.x = x;
+        batch.y = y;
+        batch.pivot.x = 0;
+        batch.pivot.y = 0;
+    }
+    
+    public.setBatchScale = function( tileX, tileY, scaleX, scaleY )
+    {
+        var batch = getBatch( tileX, tileY );
+        batch.scale.x = scaleX;
+        batch.scale.y = scaleY;
     }
     
     return public;
@@ -463,10 +481,10 @@ var MMAPRENDER = (function ()
     
     var populateContainer = function( tileX, tileY )
     {
-        var startTileX = MMAPSPRITECONTAINER.tileXToStartTileX( tileX );
-        var startTileY = MMAPSPRITECONTAINER.tileYToStartTileY( tileY );
-        var endTileX = MMAPSPRITECONTAINER.tileXToEndTileX( tileX );
-        var endTileY = MMAPSPRITECONTAINER.tileYToEndTileY( tileY );
+        var startTileX = MMAPBATCH.tileXToStartTileX( tileX );
+        var startTileY = MMAPBATCH.tileYToStartTileY( tileY );
+        var endTileX = MMAPBATCH.tileXToEndTileX( tileX );
+        var endTileY = MMAPBATCH.tileYToEndTileY( tileY );
         
         for ( var x = startTileX; x < endTileX; x++ )
         {
@@ -495,7 +513,7 @@ var MMAPRENDER = (function ()
             sprite.y = tileToMapY( tileX, tileY ) - sprite.height + TEXTURE_BASE_SIZE_Y;
             sprite.visible = true;
         
-            MMAPSPRITECONTAINER.addSprite( tileX, tileY, sprite );
+            MMAPBATCH.addSprite( tileX, tileY, sprite );
         }
         else
         {
@@ -618,7 +636,7 @@ var MMAPRENDER = (function ()
                 var tileY = centerTileY + j;
                 if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
                 {
-                    MMAPSPRITECONTAINER.container( tileX, tileY ).visible = flag;
+                    MMAPBATCH.setBatchVisible( tileX, tileY, flag );
                 }
             }
         }
@@ -634,22 +652,19 @@ var MMAPRENDER = (function ()
                 var tileY = centerTileY + j;
                 if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
                 {
-                    var container = MMAPSPRITECONTAINER.container( tileX, tileY );
-                    mapSpriteContainerDrawRefresh( container );
+                    updateMapSpriteBatchPosition( tileX, tileY );
                 }
             }
         }
     }
     
-    var mapSpriteContainerDrawRefresh = function ( _this )
+    var updateMapSpriteBatchPosition = function( tileX, tileY )
     {
-        // note: this.x and y are screen
-        _this.pivot.x = 0;
-        _this.pivot.y = 0;
-        _this.x = -m_cameraMapX * m_cameraScaleX + viewWidth() / 2;
-        _this.y = -m_cameraMapY * m_cameraScaleY + viewHeight() / 2;
-        _this.scale.x = m_cameraScaleX;
-        _this.scale.y = m_cameraScaleY;
+        // note: x and y are screen coordinates
+        var x = -m_cameraMapX * m_cameraScaleX + viewWidth() / 2;
+        var y = -m_cameraMapY * m_cameraScaleY + viewHeight() / 2;
+        MMAPBATCH.setBatchPosition( tileX, tileY, x, y );
+        MMAPBATCH.setBatchScale( tileX, tileY, m_cameraScaleX, m_cameraScaleY );
     }
     
     public.draw = function()
