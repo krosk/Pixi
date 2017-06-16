@@ -147,7 +147,7 @@ var MMAP = (function ()
         for ( var i = 0; i < tileToUpdate.length; i++ )
         {
             var tile = tileToUpdate[i];
-            MMAPRENDER.setTile(tile.x, tile.y, tile.id);
+            //MMAPRENDER.setTile(tile.x, tile.y, tile.id);
         }
         MMAPRENDER.draw();
     }
@@ -186,8 +186,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 100;
-        m_mapTableSizeY = 100;
+        m_mapTableSizeX = 500;
+        m_mapTableSizeY = 500;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -472,24 +472,6 @@ var MMAPRENDER = (function ()
         return mapToTileY( mapX, mapY );
     }
     
-    // to launch if batch never existed before
-    var populateBatch = function( tileX, tileY )
-    {
-        var startTileX = MMAPBATCH.tileXToStartTileX( tileX );
-        var startTileY = MMAPBATCH.tileYToStartTileY( tileY );
-        var endTileX = MMAPBATCH.tileXToEndTileX( tileX );
-        var endTileY = MMAPBATCH.tileYToEndTileY( tileY );
-        
-        for ( var x = startTileX; x < endTileX; x++ )
-        {
-            for ( var y = startTileY; y < endTileY; y++ )
-            {
-                var id = MMAPDATA.tileId( x, y );
-                public.setTile( x, y, id );
-            }
-        }
-    }
-    
     public.setTile = function ( tileX, tileY, id )
     {
         var textureName = GetTextureName( id );
@@ -635,6 +617,23 @@ var MMAPRENDER = (function ()
         }
     }
     
+    var loadRadiusRangeTexture = function ( centerTileX, centerTileY, radius )
+    {
+        for ( var i = -radius; i <= radius; i++ )
+        {
+            for ( var j = -radius; j <= radius; j++ )
+            {
+                var tileX = centerTileX + i;
+                var tileY = centerTileY + j;
+                if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
+                {
+                    var tileId = MMAPDATA.tileId( tileX, tileY );
+                    public.setTile( tileX, tileY, tileId );
+                }
+            }
+        }
+    }
+    
     var updateMapSpriteBatchPosition = function( tileX, tileY )
     {
         // note: x and y are screen coordinates
@@ -679,6 +678,11 @@ var MMAPRENDER = (function ()
         var currentCenterTileX = centerTileX();
         var currentCenterTileY = centerTileY();
         var currentRadius = drawingRadius();
+        
+        loadRadiusRangeTexture(
+            currentCenterTileX,
+            currentCenterTileY,
+            currentRadius );
         
         changeRadiusRangeVisibility(
             currentCenterTileX,
