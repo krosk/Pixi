@@ -222,6 +222,11 @@ var MMAPDATA = (function ()
         m_mapChangeLog = [];
         return output;
     }
+    public.tileId = function( tileX, tileY )
+    {
+        var index = tileX * m_mapTableSizeY + tileY;
+        return m_mapTableData[ index ];
+    }
     public.isValidCoordinates = function ( tileX, tileY )
     {
         var isOutOfBound = tileX < 0 || 
@@ -291,8 +296,28 @@ var MMAPSPRITECONTAINER = (function ()
         }
     }
     
-    return public;
+    public.tileXToStartTileX = function( tileX )
+    {
+        return Math.floor( Math.floor( tileX ) / m_containerSizeX ) * m_containerSizeX;
+    }
     
+    public.tileYToStartTileY = function( tileY )
+    {
+        return Math.floor( Math.floor( tileY ) / m_containerSizeY ) * m_containerSizeY;
+    }
+    
+    // end tile excluded
+    public.tileXToEndTileX = function( tileX )
+    {
+        return public.tileXToStartTileX( tileX ) + m_containerSizeX;
+    }
+    
+    public.tileXToEndTileY = function( tileY )
+    {
+        return public.tileYToStartTileY( tileY ) + m_containerSizeY;
+    }
+    
+    return public;
 })();
 
 var MMAPSPRITE = (function ()
@@ -434,6 +459,23 @@ var MMAPRENDER = (function ()
         var mapX = screenToMapX( screenX );
         var mapY = screenToMapY( screenY );
         return mapToTileY( mapX, mapY );
+    }
+    
+    var populateContainer = function( tileX, tileY )
+    {
+        var startTileX = MMAPSPRITECONTAINER.tileXToStartTileX( tileX );
+        var startTileY = MMAPSPRITECONTAINER.tileYToStartTileY( tileY );
+        var endTileX = MMAPSPRITECONTAINER.tileXToEndTileX( tileX );
+        var endTileY = MMAPSPRITECONTAINER.tileYToEndTileY( tileY );
+        
+        for ( var x = startTileX; x < endTileX; x++ )
+        {
+            for ( var y = startTileY; y < endTileY; y++ )
+            {
+                var id = MMAPDATA.tileId( x, y );
+                public.setTile( x, y, id );
+            }
+        }
     }
     
     public.setTile = function ( tileX, tileY, id )
