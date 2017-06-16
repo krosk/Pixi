@@ -255,15 +255,14 @@ var MMAPBATCH = (function ()
     {
         var X = Math.floor( tileX / BATCH_SIZE_X );
         var Y = Math.floor( tileY / BATCH_SIZE_Y );
-        return Math.floor( ( X * Y ) * ( X * Y + 1 ) / 2 + Y );
+        return Math.floor( ( X + Y ) * ( X + Y + 1 ) / 2 + Y );
     }
     
     var hashSpriteIndex = function( tileX, tileY )
     {
         var X = Math.floor( tileX );
         var Y = Math.floor( tileY );
-        //return Math.floor( ( X * Y ) * ( X * Y + 1 ) / 2 + Y );
-        return tileX * MMAPDATA.GetMapTableSizeY() + tileY;
+        return Math.floor( ( X + Y ) * ( X + Y + 1 ) / 2 + Y );
     }
     
     // create one empty if none
