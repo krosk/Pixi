@@ -264,32 +264,32 @@ var MMAPBATCH = (function ()
         var index = hashIndex( tileX, tileY );
         if ( !hasBatch( tileX, tileY ) )
         {
-            var mapDisplay = new PIXI.Container();
+            var batch = new PIXI.Container();
     
-            mapDisplay.interactive = true;
-            mapDisplay.visible = false;
+            batch.interactive = true;
+            batch.visible = false;
     
-            mapDisplay.on('pointerdown', MMAPRENDER.onMapDisplayDragStart);
-            mapDisplay.on('pointermove', MMAPRENDER.onMapDisplayDragMove);
-            mapDisplay.on('pointerupoutside', MMAPRENDER.onMapDisplayDragEnd);
-            mapDisplay.on('pointerup', MMAPRENDER.onMapDisplayDragEnd);
+            batch.on('pointerdown', MMAPRENDER.onMapDisplayDragStart);
+            batch.on('pointermove', MMAPRENDER.onMapDisplayDragMove);
+            batch.on('pointerupoutside', MMAPRENDER.onMapDisplayDragEnd);
+            batch.on('pointerup', MMAPRENDER.onMapDisplayDragEnd);
             
-            g_app.stage.addChild( mapDisplay );
+            g_app.stage.addChild( batch );
             
-            m_mapSpriteBatch[ index ] = mapDisplay;
+            m_mapSpriteBatch[ index ] = batch;
             
             console.log('created container for ' + tileX + ',' + tileY);
         }
         return m_mapSpriteBatch[ index ];
     }
     
-    var hasBatch = function ( tileX, tileY )
+    var hasBatch = function( tileX, tileY )
     {
         var i = hashIndex( tileX, tileY );
         return !( typeof m_mapSpriteBatch[ i ] === 'undefined' || m_mapSpriteBatch[ i ] === null );
     }
     
-    public.addSprite = function ( tileX, tileY, sprite )
+    public.addSprite = function( tileX, tileY, sprite )
     {
         getBatch( tileX, tileY ).addChild( sprite );
     }
