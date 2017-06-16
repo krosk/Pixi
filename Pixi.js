@@ -241,7 +241,6 @@ var MMAPDATA = (function ()
 
 // a map batch regroups multiple tiles
 // abstraction layer for pixi container
-// Has a dependency to MMAPDATA for the indexing part?
 var MMAPBATCH = (function ()
 {
     var public = {};
@@ -253,7 +252,9 @@ var MMAPBATCH = (function ()
     
     var hashIndex = function ( tileX, tileY )
     {
-        return Math.floor( tileX / BATCH_SIZE_X ) * Math.floor( MMAPDATA.GetMapTableSizeY() / BATCH_SIZE_Y ) + Math.floor( tileY / BATCH_SIZE_Y );
+        var X = Math.floor( tileX / BATCH_SIZE_X );
+        var Y = Math.floor( tileY / BATCH_SIZE_Y );
+        return Math.floor( ( X * Y ) * ( X * Y + 1 ) / 2 + Y );
     }
     
     // create one empty if none
