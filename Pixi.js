@@ -240,28 +240,37 @@ var MMAPDATA = (function ()
 })();
 
 // a map batch regroups multiple tiles
-// abstraction layer for pixi container
+// abstraction layer for pixi container and sprite
 var MMAPBATCH = (function ()
 {
     var public = {};
     
     var m_mapSpriteBatch = [];
+    var m_mapSprite = [];
     
     var BATCH_SIZE_X = 5;
     var BATCH_SIZE_Y = 5;
     
-    var hashIndex = function ( tileX, tileY )
+    var hashBatchIndex = function( tileX, tileY )
     {
         var X = Math.floor( tileX / BATCH_SIZE_X );
         var Y = Math.floor( tileY / BATCH_SIZE_Y );
         return Math.floor( ( X * Y ) * ( X * Y + 1 ) / 2 + Y );
     }
     
+    var hashSpriteIndex = function( tileX, tileY )
+    {
+        var X = Math.floor( tileX );
+        var Y = Math.floor( tileY );
+        //return Math.floor( ( X * Y ) * ( X * Y + 1 ) / 2 + Y );
+        return tileX * MMAPDATA.GetMapTableSizeY() + tileY;
+    }
+    
     // create one empty if none
     // excepted if coordinates are negative
     var getBatch = function( tileX, tileY )
     {
-        var index = hashIndex( tileX, tileY );
+        var index = hashBatchIndex( tileX, tileY );
         if ( !hasBatch( tileX, tileY ) )
         {
             var batch = new PIXI.Container();
@@ -285,13 +294,37 @@ var MMAPBATCH = (function ()
     
     var hasBatch = function( tileX, tileY )
     {
-        var i = hashIndex( tileX, tileY );
+        var i = hashBatchIndex( tileX, tileY );
         return !( typeof m_mapSpriteBatch[ i ] === 'undefined' || m_mapSpriteBatch[ i ] === null );
     }
     
-    public.addSprite = function( tileX, tileY, sprite )
+    var hasSprite = function( tileX, tileY )
     {
-        getBatch( tileX, tileY ).addChild( sprite );
+        var i = hashSpriteIndex( tileX, tileY );
+        return !( typeof m_mapSprite[ i ] === 'undefined' || m_mapSprite[ i ] === null );
+    }
+    
+    public.setSprite = function( tileX, tileY, textureName, x, y )
+    {
+        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
+        
+        var index = hashSpriteIndex( tileX, tileY );
+        if ( !hasSprite( tileX, tileY ) )
+        {
+            var sprite = new PIXI.Sprite( tileTextureCache );
+            
+            sprite.x = x - sprite.width / 2;
+            sprite.y = y - sprite.height;
+            sprite.visible = true;
+            
+            m_mapSprite[ index ] = sprite;
+            
+            getBatch( tileX, tileY ).addChild( sprite );
+        }
+        else
+        {
+            m_mapSprite[ index ].texture = tileTextureCache;
+        }
     }
     
     public.tileXToStartTileX = function( tileX )
@@ -334,46 +367,6 @@ var MMAPBATCH = (function ()
         var batch = getBatch( tileX, tileY );
         batch.scale.x = scaleX;
         batch.scale.y = scaleY;
-    }
-    
-    return public;
-})();
-
-var MMAPSPRITE = (function ()
-{
-    var public = {};
-    
-    var m_mapTileTable = [];
-    
-    var hashIndex = function ( tileX, tileY )
-    {
-         return tileX * MMAPDATA.GetMapTableSizeY() + tileY;
-    }
-    
-    public.hasSprite = function ( tileX, tileY )
-    {
-        var i = hashIndex( tileX, tileY );
-        return !( typeof m_mapTileTable[ i ] === 'undefined' || m_mapTileTable[ i ] === null );
-    }
-    
-    public.setSprite = function ( tileX, tileY, sprite )
-    {
-        var i = hashIndex( tileX, tileY );
-        m_mapTileTable[ i ] = sprite;
-    }
-    
-    public.sprite = function ( tileX, tileY )
-    {
-        var i = hashIndex( tileX, tileY );
-        return m_mapTileTable[ i ];
-    }
-    
-    public.hideAll = function ()
-    {
-        for ( var j = 0; j < m_mapTileTable.length; j++ )
-        {
-            m_mapTileTable[ j ].visible = false;
-        }
     }
     
     return public;
@@ -480,7 +473,8 @@ var MMAPRENDER = (function ()
         return mapToTileY( mapX, mapY );
     }
     
-    var populateContainer = function( tileX, tileY )
+    // to launch if batch never existed before
+    var populateBatch = function( tileX, tileY )
     {
         var startTileX = MMAPBATCH.tileXToStartTileX( tileX );
         var startTileY = MMAPBATCH.tileYToStartTileY( tileY );
@@ -500,26 +494,9 @@ var MMAPRENDER = (function ()
     public.setTile = function ( tileX, tileY, id )
     {
         var textureName = GetTextureName( id );
-        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
-        
-        if ( !MMAPSPRITE.hasSprite( tileX, tileY ) )
-        {
-            var sprite = new PIXI.Sprite( tileTextureCache );
-                
-            MMAPSPRITE.setSprite( tileX, tileY, sprite );
-        
-            // use tileToMap as base center position
-            // note that the pivot point is 0, 0 by default
-            sprite.x = tileToMapX( tileX, tileY ) - sprite.width / 2;
-            sprite.y = tileToMapY( tileX, tileY ) - sprite.height + TEXTURE_BASE_SIZE_Y;
-            sprite.visible = true;
-        
-            MMAPBATCH.addSprite( tileX, tileY, sprite );
-        }
-        else
-        {
-            MMAPSPRITE.sprite( tileX, tileY ).texture = tileTextureCache;
-        }
+        var x = tileToMapX( tileX, tileY );
+        var y = tileToMapY( tileX, tileY ); + TEXTURE_BASE_SIZE_Y;
+        MMAPBATCH.setSprite( tileX, tileY, textureName, x, y );
     }
 
     var getDistanceBetween = function ( pos1, pos2 )
