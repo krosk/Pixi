@@ -251,18 +251,34 @@ var MMAPBATCH = (function ()
     var BATCH_SIZE_X = 5;
     var BATCH_SIZE_Y = 5;
     
+    var mathCantor = function( X, Y )
+    {
+        return ( X + Y ) * ( X + Y + 1 ) / 2 + Y;
+    }
+    
+    var mathReverseCantorPair = function( z )
+    {
+        var pair = [];
+        var t = Math.floor( ( -1 + Math.sqrt( 1 + 8 * z ) ) / 2 );
+        var x = t * (t + 3) / 2 - z;
+        var y = z - t * (t + 1) / 2;
+        pair[0] = x;
+        pair[1] = y;
+        return pair;
+    }
+    
     var hashBatchIndex = function( tileX, tileY )
     {
         var X = Math.floor( tileX / BATCH_SIZE_X );
         var Y = Math.floor( tileY / BATCH_SIZE_Y );
-        return Math.floor( ( X + Y ) * ( X + Y + 1 ) / 2 + Y );
+        return mathCantor( X, Y );
     }
     
     var hashSpriteIndex = function( tileX, tileY )
     {
-        var X = Math.floor( tileX );
-        var Y = Math.floor( tileY );
-        return Math.floor( ( X + Y ) * ( X + Y + 1 ) / 2 + Y );
+        var X = tileX;
+        var Y = tileY;
+        return mathCantor( X, Y );
     }
     
     // create one empty if none
@@ -305,11 +321,10 @@ var MMAPBATCH = (function ()
     
     public.setSprite = function( tileX, tileY, textureName, x, y )
     {
-        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
-        
         var index = hashSpriteIndex( tileX, tileY );
         if ( !hasSprite( tileX, tileY ) )
         {
+            var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
             var sprite = new PIXI.Sprite( tileTextureCache );
             
             sprite.x = x - sprite.width / 2;
@@ -322,6 +337,7 @@ var MMAPBATCH = (function ()
         }
         else
         {
+            var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
             m_mapSprite[ index ].texture = tileTextureCache;
         }
     }
