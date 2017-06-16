@@ -247,6 +247,7 @@ var MMAPBATCH = (function ()
     
     var m_mapSpriteBatch = [];
     var m_mapSprite = [];
+    var m_mapSpriteId = [];
     
     var BATCH_SIZE_X = 5;
     var BATCH_SIZE_Y = 5;
@@ -319,11 +320,12 @@ var MMAPBATCH = (function ()
         return !( typeof m_mapSprite[ i ] === 'undefined' || m_mapSprite[ i ] === null );
     }
     
-    public.setSprite = function( tileX, tileY, textureName, x, y )
+    public.setSprite = function( tileX, tileY, id, x, y )
     {
         var index = hashSpriteIndex( tileX, tileY );
         if ( !hasSprite( tileX, tileY ) )
         {
+            var textureName = GetTextureName( id );
             var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
             var sprite = new PIXI.Sprite( tileTextureCache );
             
@@ -332,13 +334,17 @@ var MMAPBATCH = (function ()
             sprite.visible = true;
             
             m_mapSprite[ index ] = sprite;
+            m_mapSpriteId[ index ] = id;
             
             getBatch( tileX, tileY ).addChild( sprite );
         }
-        else
+        // it is likely this
+        else if ( m_mapSpriteId[ index ] != id )
         {
+            var textureName = GetTextureName( id );
             var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
             m_mapSprite[ index ].texture = tileTextureCache;
+            m_mapSpriteId[ index ] = id;
         }
     }
     
@@ -490,10 +496,9 @@ var MMAPRENDER = (function ()
     
     public.setTile = function ( tileX, tileY, id )
     {
-        var textureName = GetTextureName( id );
         var x = tileToMapX( tileX, tileY );
         var y = tileToMapY( tileX, tileY ); + TEXTURE_BASE_SIZE_Y;
-        MMAPBATCH.setSprite( tileX, tileY, textureName, x, y );
+        MMAPBATCH.setSprite( tileX, tileY, id, x, y );
     }
 
     var getDistanceBetween = function ( pos1, pos2 )
@@ -695,16 +700,16 @@ var MMAPRENDER = (function ()
         var currentCenterTileY = centerTileY();
         var currentRadius = drawingRadius();
         
-        loadRadiusRangeTexture(
-            currentCenterTileX,
-            currentCenterTileY,
-            currentRadius );
-        
         changeRadiusRangeVisibility(
             currentCenterTileX,
             currentCenterTileY,
             currentRadius,
             true );
+            
+        loadRadiusRangeTexture(
+            currentCenterTileX,
+            currentCenterTileY,
+            currentRadius );
             
         changeRadiusRangePosition(
             currentCenterTileX,
