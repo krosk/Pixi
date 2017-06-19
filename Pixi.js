@@ -105,9 +105,21 @@ function GetTextureName(id)
     return  "cityTiles_" + ("00" + id).slice(-3) + ".png";
 }
 
-
-
-
+var mathCantor = function( X, Y )
+{
+    return ( X + Y ) * ( X + Y + 1 ) / 2 + Y;
+}
+    
+var mathReverseCantorPair = function( z )
+{
+    var pair = [];
+    var t = Math.floor( ( -1 + Math.sqrt( 1 + 8 * z ) ) / 2 );
+    var x = t * (t + 3) / 2 - z;
+    var y = z - t * (t + 1) / 2;
+    pair[0] = x;
+    pair[1] = y;
+    return pair;
+}
 
 function WaitingState()
 {
@@ -252,21 +264,7 @@ var MMAPBATCH = (function ()
     var BATCH_SIZE_X = 5;
     var BATCH_SIZE_Y = 5;
     
-    var mathCantor = function( X, Y )
-    {
-        return ( X + Y ) * ( X + Y + 1 ) / 2 + Y;
-    }
     
-    var mathReverseCantorPair = function( z )
-    {
-        var pair = [];
-        var t = Math.floor( ( -1 + Math.sqrt( 1 + 8 * z ) ) / 2 );
-        var x = t * (t + 3) / 2 - z;
-        var y = z - t * (t + 1) / 2;
-        pair[0] = x;
-        pair[1] = y;
-        return pair;
-    }
     
     var hashBatchIndex = function( tileX, tileY )
     {
@@ -303,7 +301,9 @@ var MMAPBATCH = (function ()
             
             m_mapSpriteBatch[ index ] = batch;
             
-            console.log('created container for ' + tileX + ',' + tileY);
+            var cTileX = public.tileXToStartTileX( tileX );
+            var cTileY = public.tileYToStartTileY( tileY );
+            console.log('created container for ' + cTileX + ',' + cTileY);
         }
         return m_mapSpriteBatch[ index ];
     }
@@ -426,8 +426,8 @@ var MMAPRENDER = (function ()
     var m_cameraMapYRendered = 0;
     var m_cameraScaleXRendered = 1;
     var m_cameraScaleYRendered = 1;
-    var m_cameraCenterTileXRendered = 0;
-    var m_cameraCenterTileYRendered = 0;
+    var m_cameraCenterTileXRendered = null;
+    var m_cameraCenterTileYRendered = null;
     var m_cameraRadiusRendered = 1;
     
     var m_touchData = [];		
@@ -606,8 +606,12 @@ var MMAPRENDER = (function ()
         return cornerToCenterTileDistance;
     }
     
-    var changeRadiusRangeVisibility = function ( centerTileX, centerTileY, radius, flag )
+    var exclusiveFlagRadiusRange = function( table, centerTileX, centerTileY, radius, flag )
     {
+        if ( centerTileX === null )
+        {
+            return;
+        }
         for ( var i = -radius; i <= radius; i++ )
         {
             for ( var j = -radius; j <= radius; j++ )
@@ -616,9 +620,33 @@ var MMAPRENDER = (function ()
                 var tileY = centerTileY + j;
                 if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
                 {
-                    MMAPBATCH.setBatchVisible( tileX, tileY, flag );
+                    var index = mathCantor( tileX, tileY );
+                    if ( typeof table[ index ] === 'undefined' )
+                    {
+                        table[ index ] = flag;
+                    }
+                    else if ( table[ index ] != flag )
+                    {
+                        delete table[ index ];
+                    }
                 }
             }
+        }
+    }
+    
+    var changeVisibility = function( visibilityFlagTable )
+    {
+        var keys = Object.keys( visibilityFlagTable );
+        //console.log( visibilityFlagTable + ' ' + keys );
+        for ( var i in keys )
+        {
+            var k = keys[ i ];
+            var pair = mathReverseCantorPair( k );
+            var tileX = pair[ 0 ];
+            var tileY = pair[ 1 ];
+            var flag = visibilityFlagTable[ k ];
+            //console.log( pair + ' ' + flag + ' ' + k );
+            MMAPBATCH.setBatchVisible( tileX, tileY, flag );
         }
     }
     
@@ -690,7 +718,10 @@ var MMAPRENDER = (function ()
         // earlier. Impact may lead to stuttering during
         // scrolls
         
-        changeRadiusRangeVisibility(
+        var visibilityFlag = {};
+        
+        exclusiveFlagRadiusRange(
+            visibilityFlag,
             m_cameraCenterTileXRendered,
             m_cameraCenterTileYRendered,
             m_cameraRadiusRendered,
@@ -700,12 +731,16 @@ var MMAPRENDER = (function ()
         var currentCenterTileY = centerTileY();
         var currentRadius = drawingRadius();
         
-        changeRadiusRangeVisibility(
+        exclusiveFlagRadiusRange(
+            visibilityFlag,
             currentCenterTileX,
             currentCenterTileY,
             currentRadius,
             true );
-            
+        
+        //console.log( Object.keys(visibilityFlag) );
+        changeVisibility( visibilityFlag );
+        
         loadRadiusRangeTexture(
             currentCenterTileX,
             currentCenterTileY,
