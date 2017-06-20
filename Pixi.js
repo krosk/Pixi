@@ -350,12 +350,12 @@ var MMAPBATCH = (function ()
     
     public.tileXToStartTileX = function( tileX )
     {
-        return Math.floor( Math.floor( tileX ) / BATCH_SIZE_X ) * BATCH_SIZE_X;
+        return public.tileXToBatchX( tileX ) * BATCH_SIZE_X;
     }
     
     public.tileYToStartTileY = function( tileY )
     {
-        return Math.floor( Math.floor( tileY ) / BATCH_SIZE_Y ) * BATCH_SIZE_Y;
+        return public.tileYToBatchY( tileY ) * BATCH_SIZE_Y;
     }
     
     // end tile excluded
@@ -367,6 +367,26 @@ var MMAPBATCH = (function ()
     public.tileXToEndTileY = function( tileY )
     {
         return public.tileYToStartTileY( tileY ) + BATCH_SIZE_Y;
+    }
+    
+    public.tileXToBatchX = function( tileX )
+    {
+        return Math.floor( Math.floor( tileX ) / BATCH_SIZE_X );
+    }
+    
+    public.tileYToBatchY = function( tileY )
+    {
+        return Math.floor( Math.floor( tileY ) / BATCH_SIZE_Y );
+    }
+    
+    public.batchXToStartTileX = function( batchX )
+    {
+        return batchX * BATCH_SIZE_X;
+    }
+    
+    public.batchYToStartTileY = function( batchY )
+    {
+        return batchY * BATCH_SIZE_Y;
     }
     
     public.setBatchVisible = function( tileX, tileY, flag )
