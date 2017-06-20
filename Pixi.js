@@ -389,6 +389,16 @@ var MMAPBATCH = (function ()
         return batchY * BATCH_SIZE_Y;
     }
     
+    public.batchXToEndTileX = function( batchX )
+    {
+        return ( batchX + 1 ) * BATCH_SIZE_X;
+    }
+    
+    public.batchYToEndTileY = function( batchY )
+    {
+        return ( batchY + 1 ) * BATCH_SIZE_Y;
+    }
+    
     public.setBatchVisible = function( batchX, batchY, flag )
     {
         var tileX = public.batchXToStartTileX( batchX );
@@ -709,18 +719,28 @@ var MMAPRENDER = (function ()
         }
     }
     
-    var loadRadiusRangeTexture = function ( centerTileX, centerTileY, radius )
+    var loadTextureInRadius = function ( visibilityFlag, centerBatchX, centerBatchY, radius )
     {
         for ( var i = -radius; i <= radius; i++ )
         {
             for ( var j = -radius; j <= radius; j++ )
             {
-                var tileX = centerTileX + i;
-                var tileY = centerTileY + j;
-                if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
+                var batchX = centerBatchX + i;
+                var batchY = centerBatchY + j;
+                if ( batchX >= 0 && batchY >= 0 )
                 {
-                    var tileId = MMAPDATA.tileId( tileX, tileY );
-                    public.setTile( tileX, tileY, tileId );
+                    var tileX = MMAPBATCH.batchXToStartTileX( batchX );
+                    var tileY = MMAPBATCH.batchYToStartTileY( batchY );
+                    var endTileX = MMAPBATCH.batchXToEndTileX( batchX );
+                    var endTileY = MMAPBATCH.batchYToEndTileY( batchY );
+                    for ( var x = tileX; x < endTileX; x++ )
+                    {
+                        for ( var y = tileY; y < endTileY; y++ )
+                        {
+                            var tileId = MMAPDATA.tileId( x, y );
+                            public.setTile( x, y, tileId );
+                        }
+                    }
                 }
             }
         }
@@ -794,10 +814,11 @@ var MMAPRENDER = (function ()
         //console.log( Object.keys(visibilityFlag) );
         applyVisibilityFlag( visibilityFlag );
         
-        loadRadiusRangeTexture(
-            currentCenterTileX,
-            currentCenterTileY,
-            currentRadius );
+        loadTextureInRadius(
+            visibilityFlag,
+            currentBatchX,
+            currentBatchY,
+            currentBatchRadius );
             
         setBatchPositionInRadius(
             currentBatchX,
