@@ -198,8 +198,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 500;
-        m_mapTableSizeY = 500;
+        m_mapTableSizeX = 10;
+        m_mapTableSizeY = 10;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -261,8 +261,8 @@ var MMAPBATCH = (function ()
     var m_mapSprite = [];
     var m_mapSpriteId = [];
     
-    var BATCH_SIZE_X = 4;
-    var BATCH_SIZE_Y = 4;
+    var BATCH_SIZE_X = 5;
+    var BATCH_SIZE_Y = 5;
     
     
     
@@ -719,16 +719,18 @@ var MMAPRENDER = (function ()
         }
     }
     
-    var loadTextureInRadius = function ( visibilityFlag, centerBatchX, centerBatchY, radius )
+    var loadTexture = function ( visibilityFlag )
     {
-        for ( var i = -radius; i <= radius; i++ )
+        var keys = Object.keys( visibilityFlag );
+        //console.log( visibilityFlagTable + ' ' + keys );
+        for ( var i in keys )
         {
-            for ( var j = -radius; j <= radius; j++ )
-            {
-                var batchX = centerBatchX + i;
-                var batchY = centerBatchY + j;
-                if ( batchX >= 0 && batchY >= 0 )
-                {
+            var k = keys[ i ];
+            var pair = mathReverseCantorPair( k );
+            var batchX = pair[ 0 ];
+            var batchY = pair[ 1 ];
+                
+                
                     var tileX = MMAPBATCH.batchXToStartTileX( batchX );
                     var tileY = MMAPBATCH.batchYToStartTileY( batchY );
                     var endTileX = MMAPBATCH.batchXToEndTileX( batchX );
@@ -741,8 +743,6 @@ var MMAPRENDER = (function ()
                             public.setTile( x, y, tileId );
                         }
                     }
-                }
-            }
         }
     }
     
@@ -814,7 +814,7 @@ var MMAPRENDER = (function ()
         //console.log( Object.keys(visibilityFlag) );
         applyVisibilityFlag( visibilityFlag );
         
-        loadTextureInRadius(
+        loadTexture(
             visibilityFlag,
             currentBatchX,
             currentBatchY,
