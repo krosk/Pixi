@@ -623,13 +623,32 @@ var MMAPRENDER = (function ()
         return Math.floor( screenToTileY( viewWidth() / 2, viewHeight() / 2 ) );
     }
     
-    var drawingRadius = function()
+    var visibleTileRadius = function()
     {
         var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
         var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
         
         var cornerToCenterTileDistance = Math.floor( Math.sqrt( ( topLeftCornerTileX - centerTileX() )**2 + ( topLeftCornerTileY - centerTileY() )**2 ) );
         return cornerToCenterTileDistance;
+    }
+    
+    var visibleBatchRadius = function()
+    {
+        var centerBatchX = MMAPBATCH.tileXToBatchX( centerTileX() );
+        var centerBatchY = MMAPBATCH.tileYToBatchY( centerTileY() );
+        
+        var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
+        var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
+        
+        var cornerBatchX = MMAPBATCH.tileXToBatchX( topLeftCornerTileX );
+        var cornerBatchY = MMAPBATCH.tileYToBatchY( topLeftCornerTileY );
+        
+        var deltaBatchX = centerBatchX - cornerBatchX;
+        var deltaBatchY = centerBatchY - cornerBatchY;
+        
+        var batchRadius = Math.floor( Math.sqrt( deltaBatchX**2 + deltaBatchY**2 ) );
+        
+        return batchRadius;
     }
     
     var exclusiveFlagRadiusRange = function( table, centerTileX, centerTileY, radius, flag )
@@ -678,18 +697,16 @@ var MMAPRENDER = (function ()
         }
     }
     
-    var changeRadiusRangePosition = function ( centerTileX, centerTileY, radius )
+    var changeRadiusRangePosition = function ( centerBatchX, centerBatchY, batchRadius )
     {
-        for ( var i = -radius; i <= radius; i++ )
+        for ( var i = -batchRadius; i <= batchRadius; i++ )
         {
-            for ( var j = -radius; j <= radius; j++ )
+            for ( var j = -batchRadius; j <= batchRadius; j++ )
             {
-                var tileX = centerTileX + i;
-                var tileY = centerTileY + j;
-                if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
+                var batchX = centerBatchX + i;
+                var batchY = centerBatchY + j;
+                if ( batchX >= 0 && batchY >= 0 )
                 {
-                    var batchX = MMAPBATCH.tileXToBatchX( tileX );
-                    var batchY = MMAPBATCH.tileYToBatchY( tileY );
                     updateMapSpriteBatchPosition( batchX, batchY );
                 }
             }
@@ -759,7 +776,10 @@ var MMAPRENDER = (function ()
         
         var currentCenterTileX = centerTileX();
         var currentCenterTileY = centerTileY();
-        var currentRadius = drawingRadius();
+        var currentRadius = visibleTileRadius();
+        var currentBatchX = MMAPBATCH.tileXToBatchX( currentCenterTileX );
+        var currentBatchY = MMAPBATCH.tileYToBatchY( currentCenterTileY );
+        var currentBatchRadius = visibleBatchRadius();
         
         exclusiveFlagRadiusRange(
             visibilityFlag,
@@ -777,9 +797,9 @@ var MMAPRENDER = (function ()
             currentRadius );
             
         changeRadiusRangePosition(
-            currentCenterTileX,
-            currentCenterTileY,
-            currentRadius );
+            currentBatchX,
+            currentBatchY,
+            currentBatchRadius );
         
         m_cameraMapXRendered = m_cameraMapX;
         m_cameraMapYRendered = m_cameraMapY;
