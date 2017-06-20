@@ -396,8 +396,10 @@ var MMAPBATCH = (function ()
         getBatch( tileX, tileY ).visible = flag;
     }
     
-    public.setBatchPosition = function( tileX, tileY, x, y )
+    public.setBatchPosition = function( batchX, batchY, x, y )
     {
+        var tileX = public.batchXToStartTileX( batchX );
+        var tileY = public.batchYToStartTileY( batchY );
         var batch = getBatch( tileX, tileY );
         batch.x = x;
         batch.y = y;
@@ -405,8 +407,10 @@ var MMAPBATCH = (function ()
         batch.pivot.y = 0;
     }
     
-    public.setBatchScale = function( tileX, tileY, scaleX, scaleY )
+    public.setBatchScale = function( batchX, batchY, scaleX, scaleY )
     {
+        var tileX = public.batchXToStartTileX( batchX );
+        var tileY = public.batchYToStartTileY( batchY );
         var batch = getBatch( tileX, tileY );
         batch.scale.x = scaleX;
         batch.scale.y = scaleY;
@@ -684,7 +688,9 @@ var MMAPRENDER = (function ()
                 var tileY = centerTileY + j;
                 if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
                 {
-                    updateMapSpriteBatchPosition( tileX, tileY );
+                    var batchX = MMAPBATCH.tileXToBatchX( tileX );
+                    var batchY = MMAPBATCH.tileYToBatchY( tileY );
+                    updateMapSpriteBatchPosition( batchX, batchY );
                 }
             }
         }
@@ -707,13 +713,13 @@ var MMAPRENDER = (function ()
         }
     }
     
-    var updateMapSpriteBatchPosition = function( tileX, tileY )
+    var updateMapSpriteBatchPosition = function( batchX, batchY )
     {
         // note: x and y are screen coordinates
         var x = -m_cameraMapX * m_cameraScaleX + viewWidth() / 2;
         var y = -m_cameraMapY * m_cameraScaleY + viewHeight() / 2;
-        MMAPBATCH.setBatchPosition( tileX, tileY, x, y );
-        MMAPBATCH.setBatchScale( tileX, tileY, m_cameraScaleX, m_cameraScaleY );
+        MMAPBATCH.setBatchPosition( batchX, batchY, x, y );
+        MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
     
     public.draw = function()
