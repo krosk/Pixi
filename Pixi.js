@@ -646,26 +646,24 @@ var MMAPRENDER = (function ()
         var deltaBatchX = centerBatchX - cornerBatchX;
         var deltaBatchY = centerBatchY - cornerBatchY;
         
+        //console.log( centerBatchX + ' ' + centerBatchY );
+        
         var batchRadius = Math.floor( Math.sqrt( deltaBatchX**2 + deltaBatchY**2 ) );
         
         return batchRadius;
     }
     
-    var exclusiveFlagRadiusRange = function( table, centerTileX, centerTileY, radius, flag )
+    var exclusiveFlagRadiusRange = function( table, centerBatchX, centerBatchY, radius, flag )
     {
-        if ( centerTileX === null )
-        {
-            return;
-        }
         for ( var i = -radius; i <= radius; i++ )
         {
             for ( var j = -radius; j <= radius; j++ )
             {
-                var tileX = centerTileX + i;
-                var tileY = centerTileY + j;
-                if ( MMAPDATA.isValidCoordinates( tileX, tileY ) )
+                var batchX = centerBatchX + i;
+                var batchY = centerBatchY + j;
+                if ( batchX >= 0 && batchY >= 0)
                 {
-                    var index = mathCantor( tileX, tileY );
+                    var index = mathCantor( batchX, batchY );
                     if ( typeof table[ index ] === 'undefined' )
                     {
                         table[ index ] = flag;
@@ -687,12 +685,12 @@ var MMAPRENDER = (function ()
         {
             var k = keys[ i ];
             var pair = mathReverseCantorPair( k );
-            var tileX = pair[ 0 ];
-            var tileY = pair[ 1 ];
+            var batchX = pair[ 0 ];
+            var batchY = pair[ 1 ];
             var flag = visibilityFlagTable[ k ];
-            //console.log( pair + ' ' + flag + ' ' + k );
-            var batchX = MMAPBATCH.tileXToBatchX( tileX );
-            var batchY = MMAPBATCH.tileYToBatchY( tileY );
+            console.log( pair + ' ' + flag + ' ' + k );
+            //var batchX = MMAPBATCH.tileXToBatchX( tileX );
+            //var batchY = MMAPBATCH.tileYToBatchY( tileY );
             MMAPBATCH.setBatchVisible( batchX, batchY, flag );
         }
     }
@@ -767,12 +765,19 @@ var MMAPRENDER = (function ()
         
         var visibilityFlag = {};
         
+        if ( m_cameraCenterTileXRendered === null )
+        {
+            
+        }
+        else
+        {
         exclusiveFlagRadiusRange(
             visibilityFlag,
-            m_cameraCenterTileXRendered,
-            m_cameraCenterTileYRendered,
+            MMAPBATCH.tileXToBatchX( m_cameraCenterTileXRendered ),
+            MMAPBATCH.tileYToBatchY( m_cameraCenterTileYRendered ),
             m_cameraRadiusRendered,
             false );
+        }
         
         var currentCenterTileX = centerTileX();
         var currentCenterTileY = centerTileY();
@@ -783,11 +788,11 @@ var MMAPRENDER = (function ()
         
         exclusiveFlagRadiusRange(
             visibilityFlag,
-            currentCenterTileX,
-            currentCenterTileY,
-            currentRadius,
+            currentBatchX,
+            currentBatchY,
+            currentBatchRadius,
             true );
-        
+            
         //console.log( Object.keys(visibilityFlag) );
         changeVisibility( visibilityFlag );
         
@@ -807,7 +812,7 @@ var MMAPRENDER = (function ()
         m_cameraScaleYRendered = m_cameraScaleY;
         m_cameraCenterTileXRendered = currentCenterTileX;
         m_cameraCenterTileYRendered = currentCenterTileY;
-        m_cameraRadiusRendered = currentRadius;
+        m_cameraRadiusRendered = currentBatchRadius;
     }
     
     return public;
