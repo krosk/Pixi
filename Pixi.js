@@ -389,8 +389,10 @@ var MMAPBATCH = (function ()
         return batchY * BATCH_SIZE_Y;
     }
     
-    public.setBatchVisible = function( tileX, tileY, flag )
+    public.setBatchVisible = function( batchX, batchY, flag )
     {
+        var tileX = public.batchXToStartTileX( batchX );
+        var tileY = public.batchYToStartTileY( batchY );
         getBatch( tileX, tileY ).visible = flag;
     }
     
@@ -666,7 +668,9 @@ var MMAPRENDER = (function ()
             var tileY = pair[ 1 ];
             var flag = visibilityFlagTable[ k ];
             //console.log( pair + ' ' + flag + ' ' + k );
-            MMAPBATCH.setBatchVisible( tileX, tileY, flag );
+            var batchX = MMAPBATCH.tileXToBatchX( tileX );
+            var batchY = MMAPBATCH.tileYToBatchY( tileY );
+            MMAPBATCH.setBatchVisible( batchX, batchY, flag );
         }
     }
     
