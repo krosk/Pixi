@@ -154,22 +154,12 @@ var MMAP = (function ()
         MMAPRENDER.initialize();
     }
     
-    var updateMapRender = function( tileToUpdate )
-    {
-        for ( var i = 0; i < tileToUpdate.length; i++ )
-        {
-            var tile = tileToUpdate[i];
-            //MMAPRENDER.setTile(tile.x, tile.y, tile.id);
-        }
-        MMAPRENDER.draw();
-    }
-    
     public.mapState = function()
     {
         // every frame
         MMAPDATA.randomizeTile( 1 );
         var changedTile = MMAPDATA.commitChangeLog();
-        updateMapRender( changedTile );
+        MMAPRENDER.draw( changedTile );
     }
     
     return public;
@@ -263,8 +253,6 @@ var MMAPBATCH = (function ()
     
     var BATCH_SIZE_X = 5;
     var BATCH_SIZE_Y = 5;
-    
-    
     
     var hashBatchIndex = function( tileX, tileY )
     {
@@ -758,7 +746,7 @@ var MMAPRENDER = (function ()
         MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
     
-    public.draw = function()
+    public.draw = function( tileToUpdate )
     {
         // remarks: one single call to texture change
         // is likely to cause a complete refresh of the
@@ -817,11 +805,7 @@ var MMAPRENDER = (function ()
         //console.log( Object.keys(visibilityFlag) );
         applyVisibilityFlag( visibilityFlag );
         
-        loadTexture(
-            visibilityFlag,
-            currentBatchX,
-            currentBatchY,
-            currentBatchRadius );
+        loadTexture( visibilityFlag );
             
         setBatchPositionInRadius(
             currentBatchX,
