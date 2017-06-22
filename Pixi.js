@@ -198,8 +198,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 10;
-        m_mapTableSizeY = 10;
+        m_mapTableSizeX = 5;
+        m_mapTableSizeY = 5;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -337,6 +337,8 @@ var MMAPBATCH = (function ()
             m_mapSpriteId[ index ] = id;
             
             getBatch( tileX, tileY ).addChild( sprite );
+            
+            //console.log('added ' + sp + ' ' + tileX + ' ' + tileY ); sp++;
         }
         // it is likely this
         else if ( m_mapSpriteId[ index ] != id )
@@ -729,20 +731,21 @@ var MMAPRENDER = (function ()
             var pair = mathReverseCantorPair( k );
             var batchX = pair[ 0 ];
             var batchY = pair[ 1 ];
-                
-                
-                    var tileX = MMAPBATCH.batchXToStartTileX( batchX );
-                    var tileY = MMAPBATCH.batchYToStartTileY( batchY );
-                    var endTileX = MMAPBATCH.batchXToEndTileX( batchX );
-                    var endTileY = MMAPBATCH.batchYToEndTileY( batchY );
-                    for ( var x = tileX; x < endTileX; x++ )
+            var tileX = MMAPBATCH.batchXToStartTileX( batchX );
+            var tileY = MMAPBATCH.batchYToStartTileY( batchY );
+            var endTileX = MMAPBATCH.batchXToEndTileX( batchX );
+            var endTileY = MMAPBATCH.batchYToEndTileY( batchY );
+            for ( var x = tileX; x < endTileX; x++ )
+            {
+                for ( var y = tileY; y < endTileY; y++ )
+                {
+                    if ( MMAPDATA.isValidCoordinates( x, y ) )
                     {
-                        for ( var y = tileY; y < endTileY; y++ )
-                        {
-                            var tileId = MMAPDATA.tileId( x, y );
-                            public.setTile( x, y, tileId );
-                        }
+                        var tileId = MMAPDATA.tileId( x, y );
+                        public.setTile( x, y, tileId );
                     }
+                }
+            }
         }
     }
     
