@@ -188,8 +188,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 5;
-        m_mapTableSizeY = 5;
+        m_mapTableSizeX = 50;
+        m_mapTableSizeY = 50;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -746,7 +746,7 @@ var MMAPRENDER = (function ()
         MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
     
-    var tileToBatch = function( updatedTiles )
+    var tileToBatchInRadius = function( updatedTiles, centerBatchX, centerBatchY, radius )
     {
         var batchFlag = {};
         for ( var i = 0; i < updatedTiles.length; i++)
@@ -755,8 +755,12 @@ var MMAPRENDER = (function ()
             var tileY = updatedTiles[ i ].y;
             var batchX = MMAPBATCH.tileXToBatchX( tileX );
             var batchY = MMAPBATCH.tileYToBatchY( tileY );
-            var index = mathCantor( batchX, batchY );
-            batchFlag[ index ] = true;
+            if ( Math.abs( batchX - centerBatchX ) <= radius &&
+                Math.abs( batchY - centerBatchY ) <= radius )
+            {
+                var index = mathCantor( batchX, batchY );
+                batchFlag[ index ] = true;
+            }
         }
         return batchFlag;
     }
@@ -822,7 +826,11 @@ var MMAPRENDER = (function ()
         
         loadTexture( visibilityFlag );
         
-        var updatedBatches = tileToBatch( updatedTiles );
+        var updatedBatches = tileToBatchInRadius(
+            updatedTiles,
+            currentBatchX,
+            currentBatchY,
+            currentBatchRadius );
         loadTexture( updatedBatches );
         
         setBatchPositionInRadius(
