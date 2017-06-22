@@ -746,7 +746,22 @@ var MMAPRENDER = (function ()
         MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
     
-    public.draw = function( tileToUpdate )
+    var tileToBatch = function( updatedTiles )
+    {
+        var batchFlag = {};
+        for ( var i = 0; i < updatedTiles.length; i++)
+        {
+            var tileX = updatedTiles[ i ].x;
+            var tileY = updatedTiles[ i ].y;
+            var batchX = MMAPBATCH.tileXToBatchX( tileX );
+            var batchY = MMAPBATCH.tileYToBatchY( tileY );
+            var index = mathCantor( batchX, batchY );
+            batchFlag[ index ] = true;
+        }
+        return batchFlag;
+    }
+    
+    public.draw = function( updatedTiles )
     {
         // remarks: one single call to texture change
         // is likely to cause a complete refresh of the
@@ -806,7 +821,10 @@ var MMAPRENDER = (function ()
         applyVisibilityFlag( visibilityFlag );
         
         loadTexture( visibilityFlag );
-            
+        
+        var updatedBatches = tileToBatch( updatedTiles );
+        loadTexture( updatedBatches );
+        
         setBatchPositionInRadius(
             currentBatchX,
             currentBatchY,
