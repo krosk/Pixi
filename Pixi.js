@@ -189,8 +189,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 50;
-        m_mapTableSizeY = 50;
+        m_mapTableSizeX = 500;
+        m_mapTableSizeY = 500;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -285,6 +285,8 @@ var MMAPBATCH = (function ()
             batch.on('pointermove', MMAPRENDER.onMapDisplayDragMove);
             batch.on('pointerupoutside', MMAPRENDER.onMapDisplayDragEnd);
             batch.on('pointerup', MMAPRENDER.onMapDisplayDragEnd);
+            
+            batch.cacheAsBitmap = true;
             
             g_app.stage.addChild( batch );
             
