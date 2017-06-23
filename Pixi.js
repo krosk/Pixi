@@ -334,6 +334,9 @@ var MMAPBATCH = (function ()
         // it is likely this
         else if ( m_mapSpriteId[ index ] != id )
         {
+            var batch = getBatch( tileX, tileY );
+            batch.cacheAsBitmap = false;
+            
             var textureName = GetTextureName( id );
             var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
             var sprite = m_mapSprite[ index ];
@@ -342,6 +345,7 @@ var MMAPBATCH = (function ()
             sprite.y = y - sprite.height;
             m_mapSpriteId[ index ] = id;
             
+            batch.cacheAsBitmap = true;
         }
     }
     
