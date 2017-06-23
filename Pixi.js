@@ -152,6 +152,7 @@ var MMAP = (function ()
     {
         MMAPDATA.initialize();
         MMAPRENDER.initialize();
+        MMAPUI.initialize();
     }
     
     public.mapState = function()
@@ -414,6 +415,43 @@ var MMAPBATCH = (function ()
         var batch = getBatch( tileX, tileY );
         batch.scale.x = scaleX;
         batch.scale.y = scaleY;
+    }
+    
+    return public;
+})();
+
+var MMAPUI = (function ()
+{
+    var public = {};
+    
+    var viewWidth = function()
+    {
+        return g_app.renderer.width;
+    }
+    var viewHeight = function()
+    {
+        return g_app.renderer.height;
+    }
+    
+    public.initialize = function()
+    {
+        var textureName = GetTextureName( 0 );
+        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
+        var sprite = new PIXI.Sprite( tileTextureCache );
+            
+        sprite.x = viewWidth() - sprite.width / 2;
+        sprite.y = 0
+        sprite.visible = true;
+        sprite.interactive = true;
+        
+        sprite.on('pointertap', UIAction);
+        
+        g_app.stage.addChild( sprite );
+    }
+    
+    var UIAction = function()
+    {
+        MMAPRENDER.setCameraMap( 0, 0 );
     }
     
     return public;
