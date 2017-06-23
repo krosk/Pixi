@@ -590,11 +590,11 @@ var MMAPRENDER = (function ()
     {
         if ( m_dragging || m_zooming )
         {
-            updateCamera( this );
+            updateCameraDrag( this );
         }
     }
     
-    var updateCamera = function( _this )
+    var updateCameraDrag = function( _this )
     {
         var pointerScreen = m_touchData[0].getLocalPosition( _this.parent );
         if ( m_zooming )
@@ -607,8 +607,16 @@ var MMAPRENDER = (function ()
         }
         
         // camera moves according to differential movement of pointer
-        m_cameraMapX = m_startCameraMapX + ( m_startPointerScreenX - pointerScreen.x ) / m_cameraScaleX;
-        m_cameraMapY = m_startCameraMapY + ( m_startPointerScreenY - pointerScreen.y ) / m_cameraScaleY;
+        var cameraMapX = m_startCameraMapX + ( m_startPointerScreenX - pointerScreen.x ) / m_cameraScaleX;
+        var cameraMapY = m_startCameraMapY + ( m_startPointerScreenY - pointerScreen.y ) / m_cameraScaleY;
+        
+        public.setCameraMap( cameraMapX, cameraMapY );
+    }
+    
+    public.setCameraMap = function( mapX, mapY )
+    {
+        m_cameraMapX = mapX;
+        m_cameraMapY = mapY;
         
         g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
     }
