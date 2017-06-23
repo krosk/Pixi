@@ -656,7 +656,12 @@ var MMAPRENDER = (function ()
         m_cameraMapX = mapX;
         m_cameraMapY = mapY;
         
-        g_counter.innerHTML = '(' + Math.floor( m_cameraMapX ) + ',' + Math.floor( m_cameraMapY ) + ',' + m_cameraScaleX + ')';
+        g_counter.innerHTML = '(' + 
+            Math.floor( m_cameraMapX ) + ',' + 
+            Math.floor( m_cameraMapY ) + ',' + 
+            m_cameraScaleX + ') (' + 
+            centerTileX() + ',' +
+            centerTileY() + ')';
     }
     
     var centerTileX = function()
