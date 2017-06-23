@@ -10,10 +10,10 @@ function OnStart()
   	//Create a layout with objects vertically centered.
   	var lay = app.CreateLayout( "linear", "VCenter,FillXY" );	
 
-	  var web = app.CreateWebView( 1, 0.9 );
+    var web = app.CreateWebView( 1, 0.9 );
   	loadHtmlWrapper(web);
   	lay.AddChild( web );
-	  app.AddLayout( lay );
+    app.AddLayout( lay );
 }
 
 function loadHtmlWrapper( webview )
@@ -41,8 +41,8 @@ function OnReady()
 
 	if ( amount == 5 )
 	{
-		g_app.renderer.context.mozImageSmoothingEnabled = false
-		g_app.renderer.context.webkitImageSmoothingEnabled = false;
+		//g_app.renderer.context.mozImageSmoothingEnabled = false
+		//g_app.renderer.context.webkitImageSmoothingEnabled = false;
 	}
 	
 	g_app.renderer.view.style["transform"] = "translatez(0)";
@@ -529,7 +529,7 @@ var MMAPRENDER = (function ()
 
     var getDistanceBetween = function ( pos1, pos2 )
     {
-        return Math.sqrt((pos2.x - pos1.x)**2 + (pos2.y - pos1.y)**2);
+        return Math.sqrt(Math.pow( pos2.x - pos1.x, 2 ) + Math.pow( pos2.y - pos1.y, 2 ));
     }
 
     var mapDisplayDragRefresh = function ( _this )
@@ -628,7 +628,7 @@ var MMAPRENDER = (function ()
         var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
         var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
         
-        var cornerToCenterTileDistance = Math.floor( Math.sqrt( ( topLeftCornerTileX - centerTileX() )**2 + ( topLeftCornerTileY - centerTileY() )**2 ) );
+        var cornerToCenterTileDistance = Math.floor( Math.sqrt( Math.pow( topLeftCornerTileX - centerTileX(), 2 ) + Math.pow( topLeftCornerTileY - centerTileY(), 2) ) );
         return cornerToCenterTileDistance;
     }
     
@@ -648,7 +648,7 @@ var MMAPRENDER = (function ()
         
         //console.log( centerBatchX + ' ' + centerBatchY );
         
-        var batchRadius = Math.floor( Math.sqrt( deltaBatchX**2 + deltaBatchY**2 ) );
+        var batchRadius = Math.floor( Math.sqrt( Math.pow( deltaBatchX, 2 ) + Math.pow( deltaBatchY, 2 ) ) );
         
         return batchRadius;
     }
