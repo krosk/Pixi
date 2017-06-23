@@ -334,8 +334,12 @@ var MMAPBATCH = (function ()
         {
             var textureName = GetTextureName( id );
             var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
-            m_mapSprite[ index ].texture = tileTextureCache;
+            var sprite = m_mapSprite[ index ];
+            sprite.texture = tileTextureCache;
+            sprite.x = x - sprite.width / 2;
+            sprite.y = y - sprite.height;
             m_mapSpriteId[ index ] = id;
+            
         }
     }
     
