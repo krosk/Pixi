@@ -161,6 +161,7 @@ var MMAP = (function ()
         MMAPDATA.randomizeTile( 1 );
         var changedTile = MMAPDATA.commitChangeLog();
         MMAPRENDER.draw( changedTile );
+        MMAPUI.setToTop();
     }
     
     return public;
@@ -189,8 +190,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 500;
-        m_mapTableSizeY = 500;
+        m_mapTableSizeX = 50;
+        m_mapTableSizeY = 50;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -340,7 +341,7 @@ var MMAPBATCH = (function ()
             var textureName = GetTextureName( id );
             var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
             var sprite = m_mapSprite[ index ];
-            sprite.texture = tileTextureCache;
+            sprite.setTexture( tileTextureCache );
             sprite.x = x - sprite.width / 2;
             sprite.y = y - sprite.height;
             m_mapSpriteId[ index ] = id;
@@ -434,6 +435,8 @@ var MMAPUI = (function ()
 {
     var public = {};
     
+    var m_uiLayer; 
+    
     var viewWidth = function()
     {
         return g_app.renderer.width;
@@ -445,6 +448,7 @@ var MMAPUI = (function ()
     
     public.initialize = function()
     {
+        m_uiLayer = new PIXI.Container();
         var textureName = GetTextureName( 0 );
         var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
         var sprite = new PIXI.Sprite( tileTextureCache );
@@ -456,7 +460,15 @@ var MMAPUI = (function ()
         
         sprite.on('pointertap', UIAction);
         
-        g_app.stage.addChild( sprite );
+        m_uiLayer.addChild( sprite );
+        
+        g_app.stage.addChild( m_uiLayer );
+    }
+    
+    public.setToTop = function()
+    {
+        g_app.stage.removeChild( m_uiLayer );
+        g_app.stage.addChild( m_uiLayer );
     }
     
     var UIAction = function()
@@ -780,6 +792,8 @@ var MMAPRENDER = (function ()
             var pair = mathReverseCantorPair( k );
             var batchX = pair[ 0 ];
             var batchY = pair[ 1 ];
+            // note: naive z order handled here
+            // but will not work with units
             var tileX = MMAPBATCH.batchXToStartTileX( batchX );
             var tileY = MMAPBATCH.batchYToStartTileY( batchY );
             var endTileX = MMAPBATCH.batchXToEndTileX( batchX );
