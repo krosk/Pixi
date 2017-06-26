@@ -471,34 +471,30 @@ var MMAPUI = (function ()
         sprite.on('pointertap', UIResetCameraAction);
     }
     
-    var addArrowCamera = function()
+    var addArrowCameraSprite = function( x, y, callbackAction )
     {
         var textureName = GetTextureName( 1 );
         var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
-        var upSprite = new PIXI.Sprite( tileTextureCache );
-        var downSprite = new PIXI.Sprite( tileTextureCache );
-        var padMiddleX = viewWidth() - upSprite.width / 2;
-        var padMiddleY= upSprite.height;
+        var sprite = new PIXI.Sprite( tileTextureCache );
+        sprite.x = x;
+        sprite.y = y;
+        sprite.visible = true;
+        sprite.interactive = true;
+        sprite.scale.x = 0.3;
+        sprite.scale.y = 0.3;
+        m_uiLayer.addChild( sprite );
+        sprite.on('pointerdown', callbackAction );
+    }
+    
+    var addArrowCamera = function()
+    {
+        var padMiddleX = viewWidth() - 160 / 2;
+        var padMiddleY= 100;
         
-        upSprite.x = padMiddleX;
-        upSprite.y = padMiddleY - 30;
-        upSprite.visible = true;
-        upSprite.interactive = true;
-        upSprite.scale.x = 0.3;
-        upSprite.scale.y = 0.3;
-        m_uiLayer.addChild( upSprite );
-        upSprite.on('pointerdown', UIUpCameraAction );
-        
-        downSprite.x = padMiddleX;
-        downSprite.y = padMiddleY + 30;
-        downSprite.visible = true;
-        downSprite.interactive = true;
-        downSprite.scale.x = 0.3;
-        downSprite.scale.y = 0.3;
-        m_uiLayer.addChild( downSprite );
-        downSprite.on( 'pointerdown', UIDownCameraAction );
-        
-        
+        addArrowCameraSprite( padMiddleX, padMiddleY - 30, UIUpCameraAction );
+        addArrowCameraSprite( padMiddleX, padMiddleY + 30, UIDownCameraAction );
+        addArrowCameraSprite( padMiddleX - 30, padMiddleY, UILeftCameraAction );
+        addArrowCameraSprite( padMiddleX + 30, padMiddleY, UIRightCameraAction );
     }
     
     public.initialize = function()
@@ -520,10 +516,17 @@ var MMAPUI = (function ()
     {
         MMAPRENDER.setCameraMapOffset( 0, -10 );
     }
-    
     var UIDownCameraAction = function()
     {
         MMAPRENDER.setCameraMapOffset( 0, 10 );
+    }
+    var UILeftCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapOffset( -10, 0 );
+    }
+    var UIRightCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapOffset( 10, 0 );
     }
     
     return public;
