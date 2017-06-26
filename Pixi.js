@@ -460,7 +460,9 @@ var MMAPUI = (function ()
         var sprite = new PIXI.Sprite( tileTextureCache );
             
         sprite.x = viewWidth() - sprite.width / 2;
-        sprite.y = 0
+        sprite.y = 0;
+        sprite.scale.x = 0.3;
+        sprite.scale.y = 0.3;
         sprite.visible = true;
         sprite.interactive = true;
         
@@ -469,11 +471,42 @@ var MMAPUI = (function ()
         sprite.on('pointertap', UIResetCameraAction);
     }
     
+    var addArrowCamera = function()
+    {
+        var textureName = GetTextureName( 1 );
+        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
+        var upSprite = new PIXI.Sprite( tileTextureCache );
+        var downSprite = new PIXI.Sprite( tileTextureCache );
+        var padMiddleX = viewWidth() - upSprite.width / 2;
+        var padMiddleY= upSprite.height;
+        
+        upSprite.x = padMiddleX;
+        upSprite.y = padMiddleY - 30;
+        upSprite.visible = true;
+        upSprite.interactive = true;
+        upSprite.scale.x = 0.3;
+        upSprite.scale.y = 0.3;
+        m_uiLayer.addChild( upSprite );
+        upSprite.on('pointerdown', UIUpCameraAction );
+        
+        downSprite.x = padMiddleX;
+        downSprite.y = padMiddleY + 30;
+        downSprite.visible = true;
+        downSprite.interactive = true;
+        downSprite.scale.x = 0.3;
+        downSprite.scale.y = 0.3;
+        m_uiLayer.addChild( downSprite );
+        downSprite.on( 'pointerdown', UIDownCameraAction );
+        
+        
+    }
+    
     public.initialize = function()
     {
         m_uiLayer = new PIXI.Container();
         
         addResetCameraSprite();
+        addArrowCamera();
         
         g_app.stage.addChild( m_uiLayer );
     }
@@ -481,6 +514,16 @@ var MMAPUI = (function ()
     var UIResetCameraAction = function()
     {
         MMAPRENDER.setCameraMap( 0, 0 );
+    }
+    
+    var UIUpCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapOffset( 0, -10 );
+    }
+    
+    var UIDownCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapOffset( 0, 10 );
     }
     
     return public;
@@ -692,6 +735,13 @@ var MMAPRENDER = (function ()
             m_cameraScaleX + ') (' + 
             centerTileX() + ',' +
             centerTileY() + ')';
+    }
+    
+    public.setCameraMapOffset = function( deltaMapX, deltaMapY )
+    {
+        var targetMapX = m_cameraMapX + deltaMapX;
+        var targetMapY = m_cameraMapY + deltaMapY;
+        public.setCameraMap( targetMapX, targetMapY );
     }
     
     var centerTileX = function()
