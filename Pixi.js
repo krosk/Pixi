@@ -161,7 +161,6 @@ var MMAP = (function ()
         MMAPDATA.randomizeTile( 1 );
         var changedTile = MMAPDATA.commitChangeLog();
         MMAPRENDER.draw( changedTile );
-        MMAPUI.setToTop();
     }
     
     return public;
@@ -190,8 +189,8 @@ var MMAPDATA = (function ()
     }
     public.initialize = function()
     {
-        m_mapTableSizeX = 50;
-        m_mapTableSizeY = 50;
+        m_mapTableSizeX = 500;
+        m_mapTableSizeY = 500;
         for ( var x = 0; x < m_mapTableSizeX; x++ )
         {
             for ( var y = 0; y < m_mapTableSizeY; y++ )
@@ -249,12 +248,20 @@ var MMAPBATCH = (function ()
 {
     var public = {};
     
+    var m_mapLayer;
+    
     var m_mapSpriteBatch = [];
     var m_mapSprite = [];
     var m_mapSpriteId = [];
     
     var BATCH_SIZE_X = 5;
     var BATCH_SIZE_Y = 5;
+    
+    public.initialize = function()
+    {
+        m_mapLayer = new PIXI.Container();
+        g_app.stage.addChild( m_mapLayer );
+    }
     
     var hashBatchIndex = function( tileX, tileY )
     {
@@ -289,7 +296,7 @@ var MMAPBATCH = (function ()
             
             batch.cacheAsBitmap = true;
             
-            g_app.stage.addChild( batch );
+            m_mapLayer.addChild( batch );
             
             m_mapSpriteBatch[ index ] = batch;
             
@@ -531,6 +538,7 @@ var MMAPRENDER = (function ()
     {
         m_cameraMapX = 0;
         m_cameraMapY = 0;
+        MMAPBATCH.initialize();
     }
 
     var tileToMapX = function ( tileX, tileY )
