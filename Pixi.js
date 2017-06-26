@@ -478,12 +478,6 @@ var MMAPUI = (function ()
         g_app.stage.addChild( m_uiLayer );
     }
     
-    public.setToTop = function()
-    {
-        g_app.stage.removeChild( m_uiLayer );
-        g_app.stage.addChild( m_uiLayer );
-    }
-    
     var UIResetCameraAction = function()
     {
         MMAPRENDER.setCameraMap( 0, 0 );
