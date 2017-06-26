@@ -453,9 +453,8 @@ var MMAPUI = (function ()
         return g_app.renderer.height;
     }
     
-    public.initialize = function()
+    var addResetCameraSprite = function()
     {
-        m_uiLayer = new PIXI.Container();
         var textureName = GetTextureName( 0 );
         var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
         var sprite = new PIXI.Sprite( tileTextureCache );
@@ -465,9 +464,16 @@ var MMAPUI = (function ()
         sprite.visible = true;
         sprite.interactive = true;
         
-        sprite.on('pointertap', UIAction);
-        
         m_uiLayer.addChild( sprite );
+        
+        sprite.on('pointertap', UIResetCameraAction);
+    }
+    
+    public.initialize = function()
+    {
+        m_uiLayer = new PIXI.Container();
+        
+        addResetCameraSprite();
         
         g_app.stage.addChild( m_uiLayer );
     }
@@ -478,7 +484,7 @@ var MMAPUI = (function ()
         g_app.stage.addChild( m_uiLayer );
     }
     
-    var UIAction = function()
+    var UIResetCameraAction = function()
     {
         MMAPRENDER.setCameraMap( 0, 0 );
     }
