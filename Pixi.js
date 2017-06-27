@@ -695,7 +695,7 @@ var MMAPRENDER = (function ()
     {
         m_touchData.push( event.data );
         mapDisplayDragRefresh( this );
-        console.log('touch ' + event.data.identifier + '/' + m_touchData.length);
+        //console.log('touch ' + event.data.identifier + '/' + m_touchData.length);
     }
 
     public.onMapDisplayDragEnd = function ( event )
@@ -706,7 +706,7 @@ var MMAPRENDER = (function ()
             m_touchData.splice( touchIndex, 1 );
         }
         mapDisplayDragRefresh( this );
-        console.log('untouch ' + event.data.identifier + '/' + m_touchData.length);
+        //console.log('untouch ' + event.data.identifier + '/' + m_touchData.length);
     }
 
     public.onMapDisplayDragMove = function()
@@ -753,7 +753,7 @@ var MMAPRENDER = (function ()
             Math.floor( m_cameraMapY ) + ',' + 
             m_cameraScaleX + ') t(' + 
             centerTileX() + ',' +
-            centerTileY() + ')' + ') b(' +
+            centerTileY() + ') b(' +
             MMAPBATCH.tileXToBatchX( centerTileX() ) + ',' +
             MMAPBATCH.tileYToBatchY( centerTileY() ) + ')';
     }
@@ -783,25 +783,53 @@ var MMAPRENDER = (function ()
         return cornerToCenterTileDistance;
     }
     
+    var batchRadiusForScreen = function( centerBatchX, centerBatchY, screenX, screenY )
+    {
+        var tileX = Math.floor( screenToTileX( screenX, screenY ) );
+        var tileY = Math.floor( screenToTileY( screenX, screenY ) );
+        var batchX = MMAPBATCH.tileXToBatchX( tileX );
+        var batchY = MMAPBATCH.tileYToBatchY( tileY );
+        //console.log('rad ' + batchX + ' ' + batchY );
+        var deltaBatchX = centerBatchX - batchX;
+        var deltaBatchY = centerBatchY - batchY;
+        var batchRadius = Math.floor( Math.sqrt( Math.pow( deltaBatchX, 2 ) + Math.pow( deltaBatchY, 2 ) ) ) + 1;
+        return batchRadius;
+    }
+    
     var visibleBatchRadius = function()
     {
         var centerBatchX = MMAPBATCH.tileXToBatchX( centerTileX() );
         var centerBatchY = MMAPBATCH.tileYToBatchY( centerTileY() );
         
-        var topLeftCornerTileX = Math.floor( screenToTileX( 0, 0 ) );
-        var topLeftCornerTileY = Math.floor( screenToTileY( 0, 0 ) );
-        
-        var cornerBatchX = MMAPBATCH.tileXToBatchX( topLeftCornerTileX );
-        var cornerBatchY = MMAPBATCH.tileYToBatchY( topLeftCornerTileY );
-        
-        var deltaBatchX = centerBatchX - cornerBatchX;
-        var deltaBatchY = centerBatchY - cornerBatchY;
-        
-        //console.log( centerBatchX + ' ' + centerBatchY );
-        
-        var batchRadius = Math.floor( Math.sqrt( Math.pow( deltaBatchX, 2 ) + Math.pow( deltaBatchY, 2 ) ) );
-        
-        return batchRadius;
+        var x = 0;
+        var y = 0;
+        var topLeftBatchRadius = batchRadiusForScreen(
+            centerBatchX,
+            centerBatchY,
+            x, y );
+            /*
+        x = viewWidth();
+        y = viewHeight();
+        var bottomRightBatchRadius = batchRadiusForScreen(
+            centerBatchX,
+            centerBatchY,
+            x, y );
+        x = 0;
+        y = viewHeight();
+        var bottomLeftBatchRadius = batchRadiusForScreen(
+            centerBatchX,
+            centerBatchY,
+            x, y );
+        x = viewWidth();
+        y = 0;
+        var topRightBatchRadius = batchRadiusForScreen(
+            centerBatchX,
+            centerBatchY,
+            x, y );
+            */
+            
+        //var maxRadius = Math.max( topLeftBatchRadius, topRightBatchRadius, bottomLeftBatchRadius, bottomRightBatchRadius );
+        return topLeftBatchRadius;
     }
     
     var setVisibilityFlagInRadius = function( visibilityFlag, centerBatchX, centerBatchY, radius, flag )
