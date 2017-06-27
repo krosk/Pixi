@@ -51,6 +51,7 @@ function OnReady()
 	
 	g_interactionManager = g_app.renderer.plugins.interaction;
 	console.log("touch " + g_interactionManager.supportsTouchEvents);
+	g_interactionManager.moveWhenInside = true;
 	
 	g_counter = document.createElement("div");
 	g_counter.className = "counter";
@@ -694,7 +695,7 @@ var MMAPRENDER = (function ()
     {
         m_touchData.push( event.data );
         mapDisplayDragRefresh( this );
-        //console.log('touch ' + event.data.identifier );
+        console.log('touch ' + event.data.identifier + '/' + m_touchData.length);
     }
 
     public.onMapDisplayDragEnd = function ( event )
@@ -705,7 +706,7 @@ var MMAPRENDER = (function ()
             m_touchData.splice( touchIndex, 1 );
         }
         mapDisplayDragRefresh( this );
-        //console.log('untouch ' + event.data.identifier );
+        console.log('untouch ' + event.data.identifier + '/' + m_touchData.length);
     }
 
     public.onMapDisplayDragMove = function()
@@ -747,12 +748,14 @@ var MMAPRENDER = (function ()
         m_cameraMapX = mapX;
         m_cameraMapY = mapY;
         
-        g_counter.innerHTML = '(' + 
+        g_counter.innerHTML = 'm(' + 
             Math.floor( m_cameraMapX ) + ',' + 
             Math.floor( m_cameraMapY ) + ',' + 
-            m_cameraScaleX + ') (' + 
+            m_cameraScaleX + ') t(' + 
             centerTileX() + ',' +
-            centerTileY() + ')';
+            centerTileY() + ')' + ') b(' +
+            MMAPBATCH.tileXToBatchX( centerTileX() ) + ',' +
+            MMAPBATCH.tileYToBatchY( centerTileY() ) + ')';
     }
     
     public.setCameraMapVelocity = function( mapVelocityX, mapVelocityY )
