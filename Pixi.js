@@ -483,7 +483,9 @@ var MMAPUI = (function ()
         sprite.scale.x = 0.3;
         sprite.scale.y = 0.3;
         m_uiLayer.addChild( sprite );
-        sprite.on('pointerdown', callbackAction );
+        sprite.on( 'pointerdown', callbackAction );
+        sprite.on( 'pointerup', UIStopCameraAction );
+        sprite.on( 'pointerupoutside', UIStopCameraAction );
     }
     
     var addArrowCamera = function()
@@ -511,22 +513,25 @@ var MMAPUI = (function ()
     {
         MMAPRENDER.setCameraMap( 0, 0 );
     }
-    
     var UIUpCameraAction = function()
     {
-        MMAPRENDER.setCameraMapOffset( 0, -10 );
+        MMAPRENDER.setCameraMapVelocity( 0, -10 );
     }
     var UIDownCameraAction = function()
     {
-        MMAPRENDER.setCameraMapOffset( 0, 10 );
+        MMAPRENDER.setCameraMapVelocity( 0, 10 );
     }
     var UILeftCameraAction = function()
     {
-        MMAPRENDER.setCameraMapOffset( -10, 0 );
+        MMAPRENDER.setCameraMapVelocity( -10, 0 );
     }
     var UIRightCameraAction = function()
     {
-        MMAPRENDER.setCameraMapOffset( 10, 0 );
+        MMAPRENDER.setCameraMapVelocity( 10, 0 );
+    }
+    var UIStopCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapVelocity( 0, 0 );
     }
     
     return public;
@@ -560,6 +565,9 @@ var MMAPRENDER = (function ()
     var m_cameraMapY = 0;
     var m_cameraScaleX = 1;
     var m_cameraScaleY = 1;
+    
+    var m_cameraMapVelocityX = 0;
+    var m_cameraMapVelocityY = 0;
     
     var m_cameraMapXRendered = 0;
     var m_cameraMapYRendered = 0;
@@ -727,6 +735,13 @@ var MMAPRENDER = (function ()
         public.setCameraMap( cameraMapX, cameraMapY );
     }
     
+    var updateCameraVelocity = function()
+    {
+        var cameraMapX = m_cameraMapX + m_cameraMapVelocityX;
+        var cameraMapY = m_cameraMapY + m_cameraMapVelocityY;
+        public.setCameraMap( cameraMapX, cameraMapY );
+    }
+    
     public.setCameraMap = function( mapX, mapY )
     {
         m_cameraMapX = mapX;
@@ -740,11 +755,10 @@ var MMAPRENDER = (function ()
             centerTileY() + ')';
     }
     
-    public.setCameraMapOffset = function( deltaMapX, deltaMapY )
+    public.setCameraMapVelocity = function( mapVelocityX, mapVelocityY )
     {
-        var targetMapX = m_cameraMapX + deltaMapX;
-        var targetMapY = m_cameraMapY + deltaMapY;
-        public.setCameraMap( targetMapX, targetMapY );
+        m_cameraMapVelocityX = mapVelocityX;
+        m_cameraMapVelocityY = mapVelocityY;
     }
     
     var centerTileX = function()
@@ -926,6 +940,8 @@ var MMAPRENDER = (function ()
         // elements that come into view, and not
         // earlier. Impact may lead to stuttering during
         // scrolls
+        
+        updateCameraVelocity();
         
         var visibilityFlag = {};
         
