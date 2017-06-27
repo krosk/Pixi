@@ -32,6 +32,8 @@ function loadHtmlWrapper( webview )
 function OnReady()
 {
     g_stats = new Stats();
+    
+    g_updateTimestamp = Date.now();
   
     g_app = new PIXI.Application(window.innerWidth, window.innerHeight);
   
@@ -807,28 +809,6 @@ var MMAPRENDER = (function ()
             centerBatchX,
             centerBatchY,
             x, y );
-            /*
-        x = viewWidth();
-        y = viewHeight();
-        var bottomRightBatchRadius = batchRadiusForScreen(
-            centerBatchX,
-            centerBatchY,
-            x, y );
-        x = 0;
-        y = viewHeight();
-        var bottomLeftBatchRadius = batchRadiusForScreen(
-            centerBatchX,
-            centerBatchY,
-            x, y );
-        x = viewWidth();
-        y = 0;
-        var topRightBatchRadius = batchRadiusForScreen(
-            centerBatchX,
-            centerBatchY,
-            x, y );
-            */
-            
-        //var maxRadius = Math.max( topLeftBatchRadius, topRightBatchRadius, bottomLeftBatchRadius, bottomRightBatchRadius );
         return topLeftBatchRadius;
     }
     
@@ -1035,6 +1015,7 @@ var MMAPRENDER = (function ()
 
 function Update()
 {
+    g_updateTimestamp = Date.now();
     g_stats.begin();
     g_state();
     g_stats.end();
