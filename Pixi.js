@@ -872,13 +872,11 @@ var MMAPRENDER = (function ()
         }
     }
     
-    var loadTexture = function ( visibilityFlag )
+    var loadTexture = function( maximumTime )
     {
-        var keys = Object.keys( visibilityFlag );
-        //console.log( visibilityFlagTable + ' ' + keys );
-        for ( var i in keys )
+        while ( m_loadTextureQueue.length > 0 )
         {
-            var k = keys[ i ];
+            var k = m_loadTextureQueue.shift();
             var pair = mathReverseCantorPair( k );
             var batchX = pair[ 0 ];
             var batchY = pair[ 1 ];
@@ -938,6 +936,19 @@ var MMAPRENDER = (function ()
         }
     }
     
+    // hold cantor indicies
+    var m_loadTextureQueue = [];
+    
+    var queueLoadTextureWork = function( fromFlag )
+    {
+        var keys = Object.keys( fromFlag );
+        for ( var i in keys )
+        {
+            var k = keys[ i ];
+            m_loadTextureQueue.push( k );
+        }
+    }
+    
     public.draw = function( updatedTiles )
     {
         // remarks: one single call to texture change
@@ -949,7 +960,7 @@ var MMAPRENDER = (function ()
         // Container size raises the cost of refresh.
         // 1/ Possible strategy is to keep sprite grain
         // but regroup them into multiple, smaller
-        // containers
+        // containers DONE
         // a call to visible or texture change may 
         // refresh smaller container instead,
         // leading to shorter delay
@@ -962,7 +973,12 @@ var MMAPRENDER = (function ()
         // consider performing texture change to
         // elements that come into view, and not
         // earlier. Impact may lead to stuttering during
-        // scrolls
+        // scrolls DONE
+        // 3/ stutering happens on scroll, which is
+        // mitigated by a loading queue that process 
+        // things until time is depleted
+        
+        var time1 = Date.now();
         
         updateCameraVelocity();
         
@@ -1012,9 +1028,22 @@ var MMAPRENDER = (function ()
             currentBatchY,
             currentBatchRadius );
             
+        queueLoadTextureWork( textureFlag );
+            
+        var time2 = Date.now();
+            
         //console.log( Object.keys(visibilityFlag) );
         applyVisibilityFlag( visibilityFlag );
-        loadTexture( textureFlag );
+        
+        var maximumTime = 5;
+        loadTexture( maximumTime );
+        
+        var time3 = Date.now();
+        
+        if ( time3 - time2 > time2 - time1 )
+        {
+            console.log(time3 - time2 + 'f');
+        }
         
         m_cameraMapXRendered = m_cameraMapX;
         m_cameraMapYRendered = m_cameraMapY;
