@@ -911,9 +911,8 @@ var MMAPRENDER = (function ()
         MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
     
-    var tileToBatchInRadius = function( updatedTiles, centerBatchX, centerBatchY, radius )
+    var flagTileToBatchInRadius = function( flag, updatedTiles, centerBatchX, centerBatchY, radius )
     {
-        var batchFlag = {};
         for ( var i = 0; i < updatedTiles.length; i++)
         {
             var tileX = updatedTiles[ i ].x;
@@ -924,11 +923,12 @@ var MMAPRENDER = (function ()
                 Math.abs( batchY - centerBatchY ) <= radius )
             {
                 var index = mathCantor( batchX, batchY );
-                batchFlag[ index ] = true;
+                flag[ index ] = true;
             }
         }
-        return batchFlag;
     }
+    
+    
     
     public.draw = function( updatedTiles )
     {
@@ -993,12 +993,16 @@ var MMAPRENDER = (function ()
         
         loadTexture( visibilityFlag );
         
-        var updatedBatches = tileToBatchInRadius(
+        var textureFlag = {};
+        
+        flagTileToBatchInRadius(
+            textureFlag,
             updatedTiles,
             currentBatchX,
             currentBatchY,
             currentBatchRadius );
-        loadTexture( updatedBatches );
+            
+        loadTexture( textureFlag );
         
         setBatchPositionInRadius(
             currentBatchX,
