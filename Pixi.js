@@ -469,6 +469,25 @@ var MMAPBATCH = (function ()
         }
     }
     
+    public.flagTileToBatchInRadius = function( flag, updatedTiles, centerTileX, centerTileY, radius )
+    {
+        var centerBatchX = public.tileXToBatchX( centerTileX );
+        var centerBatchY = public.tileYToBatchY( centerTileY );
+        for ( var i = 0; i < updatedTiles.length; i++)
+        {
+            var tileX = updatedTiles[ i ].x;
+            var tileY = updatedTiles[ i ].y;
+            var batchX = public.tileXToBatchX( tileX );
+            var batchY = public.tileYToBatchY( tileY );
+            if ( Math.abs( batchX - centerBatchX ) <= radius &&
+                Math.abs( batchY - centerBatchY ) <= radius )
+            {
+                var index = hashBatchIndex( batchX, batchY );
+                flag[ index ] = true;
+            }
+        }
+    }
+    
     return public;
 })();
 
@@ -847,8 +866,6 @@ var MMAPRENDER = (function ()
         return topLeftBatchRadius;
     }
     
-    
-    
     var applyVisibilityFlag = function( visibilityFlag )
     {
         var keys = Object.keys( visibilityFlag );
@@ -918,22 +935,7 @@ var MMAPRENDER = (function ()
         MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
     
-    var flagTileToBatchInRadius = function( flag, updatedTiles, centerBatchX, centerBatchY, radius )
-    {
-        for ( var i = 0; i < updatedTiles.length; i++)
-        {
-            var tileX = updatedTiles[ i ].x;
-            var tileY = updatedTiles[ i ].y;
-            var batchX = MMAPBATCH.tileXToBatchX( tileX );
-            var batchY = MMAPBATCH.tileYToBatchY( tileY );
-            if ( Math.abs( batchX - centerBatchX ) <= radius &&
-                Math.abs( batchY - centerBatchY ) <= radius )
-            {
-                var index = mathCantor( batchX, batchY );
-                flag[ index ] = true;
-            }
-        }
-    }
+    
     
     var copyFlag = function( fromFlag, toFlag )
     {
@@ -1025,11 +1027,11 @@ var MMAPRENDER = (function ()
         
         copyFlag( visibilityFlag, textureFlag );
         
-        flagTileToBatchInRadius(
+        MMAPBATCH.flagTileToBatchInRadius(
             textureFlag,
             updatedTiles,
-            currentBatchX,
-            currentBatchY,
+            currentCenterTileX,
+            currentCenterTileY,
             currentBatchRadius );
         
         setBatchPositionInRadius(
