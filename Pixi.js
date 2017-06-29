@@ -996,9 +996,6 @@ var MMAPRENDER = (function ()
             currentBatchRadius,
             true );
             
-        //console.log( Object.keys(visibilityFlag) );
-        applyVisibilityFlag( visibilityFlag );
-        
         var textureFlag = {};
         
         copyFlag( visibilityFlag, textureFlag );
@@ -1009,13 +1006,15 @@ var MMAPRENDER = (function ()
             currentBatchX,
             currentBatchY,
             currentBatchRadius );
-            
-        loadTexture( textureFlag );
         
         setBatchPositionInRadius(
             currentBatchX,
             currentBatchY,
             currentBatchRadius );
+            
+        //console.log( Object.keys(visibilityFlag) );
+        applyVisibilityFlag( visibilityFlag );
+        loadTexture( textureFlag );
         
         m_cameraMapXRendered = m_cameraMapX;
         m_cameraMapYRendered = m_cameraMapY;
