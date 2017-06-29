@@ -1020,6 +1020,11 @@ function Update()
     g_state();
     g_stats.end();
     g_frameCounter++;
+    var endUpdateTimestamp = Date.now() - g_updateTimestamp;
+    if ( endUpdateTimestamp > 1000/60.0 )
+    {
+        console.log( endUpdateTimestamp );
+    }
 }
 
 var MUTILS = (function ()
