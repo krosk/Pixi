@@ -266,11 +266,16 @@ var MMAPBATCH = (function ()
         g_app.stage.addChild( m_mapLayer );
     }
     
-    var hashBatchIndex = function( tileX, tileY )
+    var hashBatchIndexByTile = function( tileX, tileY )
     {
         var X = Math.floor( tileX / BATCH_SIZE_X );
         var Y = Math.floor( tileY / BATCH_SIZE_Y );
-        return mathCantor( X, Y );
+        return hashBatchIndex( X, Y );
+    }
+    
+    var hashBatchIndex = function( batchX, batchY )
+    {
+        return mathCantor( batchX, batchY );
     }
     
     var hashSpriteIndex = function( tileX, tileY )
@@ -284,7 +289,7 @@ var MMAPBATCH = (function ()
     // excepted if coordinates are negative
     var getBatch = function( tileX, tileY )
     {
-        var index = hashBatchIndex( tileX, tileY );
+        var index = hashBatchIndexByTile( tileX, tileY );
         if ( !hasBatch( tileX, tileY ) )
         {
             var batch = new PIXI.Container();
@@ -312,7 +317,7 @@ var MMAPBATCH = (function ()
     
     var hasBatch = function( tileX, tileY )
     {
-        var i = hashBatchIndex( tileX, tileY );
+        var i = hashBatchIndexByTile( tileX, tileY );
         return !( typeof m_mapSpriteBatch[ i ] === 'undefined' || m_mapSpriteBatch[ i ] === null );
     }
     
@@ -436,6 +441,32 @@ var MMAPBATCH = (function ()
         var batch = getBatch( tileX, tileY );
         batch.scale.x = scaleX;
         batch.scale.y = scaleY;
+    }
+    
+    public.setVisibilityFlagInRadius = function( visibilityFlag, centerTileX, centerTileY, radius, flag )
+    {
+        var centerBatchX = public.tileXToBatchX( centerTileX );
+        var centerBatchY = public.tileYToBatchY( centerTileY );
+        for ( var i = -radius; i <= radius; i++ )
+        {
+            for ( var j = -radius; j <= radius; j++ )
+            {
+                var batchX = centerBatchX + i;
+                var batchY = centerBatchY + j;
+                if ( batchX >= 0 && batchY >= 0)
+                {
+                    var index = mathCantor( batchX, batchY );
+                    if ( typeof visibilityFlag[ index ] === 'undefined' )
+                    {
+                        visibilityFlag[ index ] = flag;
+                    }
+                    else if ( visibilityFlag[ index ] != flag )
+                    {
+                        delete visibilityFlag[ index ];
+                    }
+                }
+            }
+        }
     }
     
     return public;
@@ -816,29 +847,7 @@ var MMAPRENDER = (function ()
         return topLeftBatchRadius;
     }
     
-    var setVisibilityFlagInRadius = function( visibilityFlag, centerBatchX, centerBatchY, radius, flag )
-    {
-        for ( var i = -radius; i <= radius; i++ )
-        {
-            for ( var j = -radius; j <= radius; j++ )
-            {
-                var batchX = centerBatchX + i;
-                var batchY = centerBatchY + j;
-                if ( batchX >= 0 && batchY >= 0)
-                {
-                    var index = mathCantor( batchX, batchY );
-                    if ( typeof visibilityFlag[ index ] === 'undefined' )
-                    {
-                        visibilityFlag[ index ] = flag;
-                    }
-                    else if ( visibilityFlag[ index ] != flag )
-                    {
-                        delete visibilityFlag[ index ];
-                    }
-                }
-            }
-        }
-    }
+    
     
     var applyVisibilityFlag = function( visibilityFlag )
     {
@@ -990,10 +999,10 @@ var MMAPRENDER = (function ()
         }
         else
         {
-            setVisibilityFlagInRadius(
+            MMAPBATCH.setVisibilityFlagInRadius(
                 visibilityFlag,
-                MMAPBATCH.tileXToBatchX( m_cameraCenterTileXRendered ),
-                MMAPBATCH.tileYToBatchY( m_cameraCenterTileYRendered ),
+                m_cameraCenterTileXRendered,
+                m_cameraCenterTileYRendered,
                 m_cameraBatchRadiusRendered,
                 false );
         }
@@ -1005,10 +1014,10 @@ var MMAPRENDER = (function ()
         var currentBatchY = MMAPBATCH.tileYToBatchY( currentCenterTileY );
         var currentBatchRadius = visibleBatchRadius();
         
-        setVisibilityFlagInRadius(
+        MMAPBATCH.setVisibilityFlagInRadius(
             visibilityFlag,
-            currentBatchX,
-            currentBatchY,
+            currentCenterTileX,
+            currentCenterTileY,
             currentBatchRadius,
             true );
             
