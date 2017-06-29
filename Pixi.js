@@ -161,9 +161,9 @@ var MMAP = (function ()
     public.mapState = function()
     {
         // every frame
-        MMAPDATA.randomizeTile( 1 );
         var changedTile = MMAPDATA.commitChangeLog();
         MMAPRENDER.draw( changedTile );
+        MMAPDATA.randomizeTile( 1 );
     }
     
     return public;
@@ -750,14 +750,18 @@ var MMAPRENDER = (function ()
         m_cameraMapX = mapX;
         m_cameraMapY = mapY;
         
+        var tileX = centerTileX();
+        var tileY = centerTileY();
+        var cameraScale = Math.floor( m_cameraScaleX * 100 );
+        
         g_counter.innerHTML = 'm(' + 
             Math.floor( m_cameraMapX ) + ',' + 
             Math.floor( m_cameraMapY ) + ',' + 
-            m_cameraScaleX + ') t(' + 
-            centerTileX() + ',' +
-            centerTileY() + ') b(' +
-            MMAPBATCH.tileXToBatchX( centerTileX() ) + ',' +
-            MMAPBATCH.tileYToBatchY( centerTileY() ) + ')';
+            cameraScale + ') t(' + 
+            tileX + ',' +
+            tileY + ') b(' +
+            MMAPBATCH.tileXToBatchX( tileX ) + ',' +
+            MMAPBATCH.tileYToBatchY( tileY ) + ')';
     }
     
     public.setCameraMapVelocity = function( mapVelocityX, mapVelocityY )
