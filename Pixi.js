@@ -928,7 +928,15 @@ var MMAPRENDER = (function ()
         }
     }
     
-    
+    var copyFlag = function( fromFlag, toFlag )
+    {
+        var keys = Object.keys( fromFlag );
+        for ( var i in keys )
+        {
+            var k = keys[ i ];
+            toFlag[ k ] = fromFlag[ k ];
+        }
+    }
     
     public.draw = function( updatedTiles )
     {
@@ -991,9 +999,9 @@ var MMAPRENDER = (function ()
         //console.log( Object.keys(visibilityFlag) );
         applyVisibilityFlag( visibilityFlag );
         
-        loadTexture( visibilityFlag );
-        
         var textureFlag = {};
+        
+        copyFlag( visibilityFlag, textureFlag );
         
         flagTileToBatchInRadius(
             textureFlag,
