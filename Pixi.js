@@ -460,13 +460,21 @@ var MMAPBATCH = (function ()
                     {
                         flag[ index ] = {};
                     }
-                    flag[ index ].visible = flagValue;
+                    if ( typeof flag[ index ].visible === 'undefined' )
+                    {
+                        flag[ index ].visible = flagValue;
+                        flag[ index ].loadTexture = flagValue;
+                    }
+                    else if ( flag[ index ].visible != flagValue )
+                    {
+                        flag[ index ].visible = flagValue;
+                    }
                 }
             }
         }
     }
     
-    public.flagInputTileToBatchInRadius = function( flag, updatedTiles, centerTileX, centerTileY, radius )
+    public.setTextureFlagInRadius = function( flag, centerTileX, centerTileY, radius, updatedTiles )
     {
         var centerBatchX = public.tileXToBatchX( centerTileX );
         var centerBatchY = public.tileYToBatchY( centerTileY );
@@ -480,7 +488,11 @@ var MMAPBATCH = (function ()
                 Math.abs( batchY - centerBatchY ) <= radius )
             {
                 var index = hashBatchIndex( batchX, batchY );
-                flag[ index ] = true;
+                if ( typeof flag[ index ] === 'undefined' )
+                {
+                    flag[ index ] = {};
+                }
+                flag[ index ].loadTexture = true;
             }
         }
     }
@@ -956,13 +968,16 @@ var MMAPRENDER = (function ()
     // hold cantor indicies
     var m_loadBatchTextureQueue = [];
     
-    var queueLoadTextureWork = function( fromFlag )
+    var queueLoadTextureWork = function( batchFlag )
     {
-        var keys = Object.keys( fromFlag );
+        var keys = Object.keys( batchFlag );
         for ( var i in keys )
         {
             var k = keys[ i ];
-            m_loadBatchTextureQueue.push( k );
+            if ( batchFlag[ k ].loadTexture )
+            {
+                m_loadBatchTextureQueue.push( k );
+            }
         }
     }
     
@@ -1039,19 +1054,15 @@ var MMAPRENDER = (function ()
             currentCenterTileY,
             currentBatchRadius,
             true );
-            
-        var textureFlag = {};
         
-        copyFlag( batchFlag, textureFlag );
-        
-        MMAPBATCH.flagInputTileToBatchInRadius(
-            textureFlag,
-            updatedTiles,
+        MMAPBATCH.setTextureFlagInRadius(
+            batchFlag,
             currentCenterTileX,
             currentCenterTileY,
-            currentBatchRadius );
+            currentBatchRadius,
+            updatedTiles );
             
-        queueLoadTextureWork( textureFlag );
+        queueLoadTextureWork( batchFlag );
             
         var time2 = Date.now();
         
