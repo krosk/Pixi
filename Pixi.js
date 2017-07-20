@@ -302,7 +302,7 @@ var MMAPBATCH = (function ()
             batch.on('pointerupoutside', MMAPRENDER.onMapDisplayDragEnd);
             batch.on('pointerup', MMAPRENDER.onMapDisplayDragEnd);
             
-            batch.cacheAsBitmap = true;
+            //batch.cacheAsBitmap = true;
             
             m_mapLayer.addChild( batch );
             
@@ -443,7 +443,7 @@ var MMAPBATCH = (function ()
         batch.scale.y = scaleY;
     }
     
-    public.setVisibilityFlagInRadius = function( visibilityFlag, centerTileX, centerTileY, radius, flag )
+    public.setFlagInRadius = function( flag, centerTileX, centerTileY, radius, flagValue )
     {
         var centerBatchX = public.tileXToBatchX( centerTileX );
         var centerBatchY = public.tileYToBatchY( centerTileY );
@@ -456,20 +456,20 @@ var MMAPBATCH = (function ()
                 if ( batchX >= 0 && batchY >= 0)
                 {
                     var index = mathCantor( batchX, batchY );
-                    if ( typeof visibilityFlag[ index ] === 'undefined' )
+                    if ( typeof flag[ index ] === 'undefined' )
                     {
-                        visibilityFlag[ index ] = flag;
+                        flag[ index ] = flagValue;
                     }
-                    else if ( visibilityFlag[ index ] != flag )
+                    else if ( flag[ index ] != flagValue )
                     {
-                        delete visibilityFlag[ index ];
+                        delete flag[ index ];
                     }
                 }
             }
         }
     }
     
-    public.flagTileToBatchInRadius = function( flag, updatedTiles, centerTileX, centerTileY, radius )
+    public.flagInputTileToBatchInRadius = function( flag, updatedTiles, centerTileX, centerTileY, radius )
     {
         var centerBatchX = public.tileXToBatchX( centerTileX );
         var centerBatchY = public.tileYToBatchY( centerTileY );
@@ -927,7 +927,7 @@ var MMAPRENDER = (function ()
             var currentTime = Date.now();
             if (currentTime > time + maximumDuration )
             {
-                break;
+                //break;
             }
         }
     }
@@ -1017,7 +1017,7 @@ var MMAPRENDER = (function ()
         }
         else
         {
-            MMAPBATCH.setVisibilityFlagInRadius(
+            MMAPBATCH.setFlagInRadius(
                 visibilityFlag,
                 m_cameraCenterTileXRendered,
                 m_cameraCenterTileYRendered,
@@ -1032,7 +1032,7 @@ var MMAPRENDER = (function ()
         var currentBatchY = MMAPBATCH.tileYToBatchY( currentCenterTileY );
         var currentBatchRadius = visibleBatchRadius();
         
-        MMAPBATCH.setVisibilityFlagInRadius(
+        MMAPBATCH.setFlagInRadius(
             visibilityFlag,
             currentCenterTileX,
             currentCenterTileY,
@@ -1043,7 +1043,7 @@ var MMAPRENDER = (function ()
         
         copyFlag( visibilityFlag, textureFlag );
         
-        MMAPBATCH.flagTileToBatchInRadius(
+        MMAPBATCH.flagInputTileToBatchInRadius(
             textureFlag,
             updatedTiles,
             currentCenterTileX,
@@ -1069,7 +1069,7 @@ var MMAPRENDER = (function ()
         }
         else
         {
-            console.log( 'postponed' );
+            //console.log( 'postponed' );
         }
         
         var time3 = Date.now();
