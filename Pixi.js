@@ -443,7 +443,7 @@ var MMAPBATCH = (function ()
         batch.scale.y = scaleY;
     }
     
-    public.setFlagInRadius = function( flag, centerTileX, centerTileY, radius, flagValue )
+    public.setVisibilityFlagInRadius = function( flag, centerTileX, centerTileY, radius, flagValue )
     {
         var centerBatchX = public.tileXToBatchX( centerTileX );
         var centerBatchY = public.tileYToBatchY( centerTileY );
@@ -458,12 +458,9 @@ var MMAPBATCH = (function ()
                     var index = mathCantor( batchX, batchY );
                     if ( typeof flag[ index ] === 'undefined' )
                     {
-                        flag[ index ] = flagValue;
+                        flag[ index ] = {};
                     }
-                    else if ( flag[ index ] != flagValue )
-                    {
-                        delete flag[ index ];
-                    }
+                    flag[ index ].visible = flagValue;
                 }
             }
         }
@@ -866,9 +863,9 @@ var MMAPRENDER = (function ()
         return topLeftBatchRadius;
     }
     
-    var applyVisibilityFlag = function( visibilityFlag )
+    var applyVisibilityFlag = function( batchFlag )
     {
-        var keys = Object.keys( visibilityFlag );
+        var keys = Object.keys( batchFlag );
         //console.log( visibilityFlagTable + ' ' + keys );
         for ( var i in keys )
         {
@@ -876,9 +873,12 @@ var MMAPRENDER = (function ()
             var pair = mathReverseCantorPair( k );
             var batchX = pair[ 0 ];
             var batchY = pair[ 1 ];
-            var flag = visibilityFlag[ k ];
-            //console.log( pair + ' ' + flag + ' ' + k );
-            MMAPBATCH.setBatchVisible( batchX, batchY, flag );
+            var flag = batchFlag[ k ].visible;
+            if ( typeof flag != 'undefined' )
+            {
+                //console.log( pair + ' ' + flag + ' ' + k );
+                MMAPBATCH.setBatchVisible( batchX, batchY, flag );
+            }
         }
     }
     
@@ -949,7 +949,7 @@ var MMAPRENDER = (function ()
         for ( var i in keys )
         {
             var k = keys[ i ];
-            toFlag[ k ] = fromFlag[ k ];
+            toFlag[ k ] = fromFlag[ k ].visible;
         }
     }
     
@@ -1009,7 +1009,8 @@ var MMAPRENDER = (function ()
         
         updateCameraVelocity();
         
-        var visibilityFlag = {};
+        // collection of objects indexed by cantor
+        var batchFlag = {};
         
         if ( m_cameraCenterTileXRendered === null )
         {
@@ -1017,8 +1018,8 @@ var MMAPRENDER = (function ()
         }
         else
         {
-            MMAPBATCH.setFlagInRadius(
-                visibilityFlag,
+            MMAPBATCH.setVisibilityFlagInRadius(
+                batchFlag,
                 m_cameraCenterTileXRendered,
                 m_cameraCenterTileYRendered,
                 m_cameraBatchRadiusRendered,
@@ -1032,8 +1033,8 @@ var MMAPRENDER = (function ()
         var currentBatchY = MMAPBATCH.tileYToBatchY( currentCenterTileY );
         var currentBatchRadius = visibleBatchRadius();
         
-        MMAPBATCH.setFlagInRadius(
-            visibilityFlag,
+        MMAPBATCH.setVisibilityFlagInRadius(
+            batchFlag,
             currentCenterTileX,
             currentCenterTileY,
             currentBatchRadius,
@@ -1041,7 +1042,7 @@ var MMAPRENDER = (function ()
             
         var textureFlag = {};
         
-        copyFlag( visibilityFlag, textureFlag );
+        copyFlag( batchFlag, textureFlag );
         
         MMAPBATCH.flagInputTileToBatchInRadius(
             textureFlag,
@@ -1065,7 +1066,7 @@ var MMAPRENDER = (function ()
                 currentBatchRadius );
             
             //console.log( Object.keys(visibilityFlag) );
-            applyVisibilityFlag( visibilityFlag );
+            applyVisibilityFlag( batchFlag );
         }
         else
         {
