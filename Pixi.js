@@ -898,11 +898,12 @@ var MMAPRENDER = (function ()
         }
     }
     
-    var loadTexture = function( maximumTime )
+    var loadBatchTexture = function( maximumDuration )
     {
-        while ( m_loadTextureQueue.length > 0 )
+        var time = Date.now();
+        while ( m_loadBatchTextureQueue.length > 0 )
         {
-            var k = m_loadTextureQueue.shift();
+            var k = m_loadBatchTextureQueue.shift();
             var pair = mathReverseCantorPair( k );
             var batchX = pair[ 0 ];
             var batchY = pair[ 1 ];
@@ -922,6 +923,11 @@ var MMAPRENDER = (function ()
                         public.setTile( x, y, tileId );
                     }
                 }
+            }
+            var currentTime = Date.now();
+            if (currentTime > time + maximumDuration )
+            {
+                break;
             }
         }
     }
@@ -948,7 +954,7 @@ var MMAPRENDER = (function ()
     }
     
     // hold cantor indicies
-    var m_loadTextureQueue = [];
+    var m_loadBatchTextureQueue = [];
     
     var queueLoadTextureWork = function( fromFlag )
     {
@@ -956,8 +962,13 @@ var MMAPRENDER = (function ()
         for ( var i in keys )
         {
             var k = keys[ i ];
-            m_loadTextureQueue.push( k );
+            m_loadBatchTextureQueue.push( k );
         }
+    }
+    
+    var batchTextureLoadQueueSize = function()
+    {
+        return m_loadBatchTextureQueue.length;
     }
     
     public.draw = function( updatedTiles )
@@ -988,6 +999,11 @@ var MMAPRENDER = (function ()
         // 3/ stutering happens on scroll, which is
         // mitigated by a loading queue that process 
         // things until time is depleted
+        // however position and visibility
+        // must be set only if texture is loaded
+        // so maybe one should perform
+        // texture loading with a default transparent one
+        // then replace it when needed?
         
         var time1 = Date.now();
         
@@ -1033,25 +1049,32 @@ var MMAPRENDER = (function ()
             currentCenterTileX,
             currentCenterTileY,
             currentBatchRadius );
-        
-        setBatchPositionInRadius(
-            currentBatchX,
-            currentBatchY,
-            currentBatchRadius );
             
         queueLoadTextureWork( textureFlag );
             
         var time2 = Date.now();
-            
-        //console.log( Object.keys(visibilityFlag) );
-        applyVisibilityFlag( visibilityFlag );
         
-        var maximumTime = 5;
-        loadTexture( maximumTime );
+        var maximumDuration = 3;
+        loadBatchTexture( maximumDuration );
+        
+        if ( batchTextureLoadQueueSize() == 0 )
+        {
+            setBatchPositionInRadius(
+                currentBatchX,
+                currentBatchY,
+                currentBatchRadius );
+            
+            //console.log( Object.keys(visibilityFlag) );
+            applyVisibilityFlag( visibilityFlag );
+        }
+        else
+        {
+            console.log( 'postponed' );
+        }
         
         var time3 = Date.now();
         
-        if ( time3 - time2 > time2 - time1 )
+        if ( time3 - time2 > 16 )
         {
             console.log(time3 - time2 + 'f');
         }
