@@ -468,6 +468,29 @@ var MMAPBATCH = (function ()
         }
     }
     
+    public.setPositionFlagInRadius = function( flag, centerTileX, centerTileY, radius, flagValue )
+    {
+        var centerBatchX = public.tileXToBatchX( centerTileX );
+        var centerBatchY = public.tileYToBatchY( centerTileY );
+        for ( var i = -radius; i <= radius; i++ )
+        {
+            for ( var j = -radius; j <= radius; j++ )
+            {
+                var batchX = centerBatchX + i;
+                var batchY = centerBatchY + j;
+                if ( batchX >= 0 && batchY >= 0)
+                {
+                    var index = mathCantor( batchX, batchY );
+                    if ( typeof flag[ index ] === 'undefined' )
+                    {
+                        flag[ index ] = {};
+                    }
+                    flag[ index ].position = flagValue;
+                }
+            }
+        }
+    }
+    
     public.setTextureFlagInNewBatch = function( flag  )
     {
         var keys = Object.keys( flag );
@@ -905,18 +928,19 @@ var MMAPRENDER = (function ()
         }
     }
     
-    var setBatchPositionInRadius = function ( centerBatchX, centerBatchY, batchRadius )
+    var applyPositionFlag = function ( batchFlag )
     {
-        for ( var i = -batchRadius; i <= batchRadius; i++ )
+        var keys = Object.keys( batchFlag );
+        for ( var i in keys )
         {
-            for ( var j = -batchRadius; j <= batchRadius; j++ )
+            var k = keys[ i ];
+            var pair = mathReverseCantorPair( k );
+            var batchX = pair[ 0 ];
+            var batchY = pair[ 1 ];
+            var flag = batchFlag[ k ].position
+            if ( typeof flag != 'undefined' )
             {
-                var batchX = centerBatchX + i;
-                var batchY = centerBatchY + j;
-                if ( batchX >= 0 && batchY >= 0 )
-                {
-                    updateMapSpriteBatchPosition( batchX, batchY );
-                }
+                updateMapSpriteBatchPosition( batchX, batchY );
             }
         }
     }
@@ -963,8 +987,6 @@ var MMAPRENDER = (function ()
         MMAPBATCH.setBatchPosition( batchX, batchY, x, y );
         MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
-    
-    
     
     var copyFlag = function( fromFlag, toFlag )
     {
@@ -1078,19 +1100,23 @@ var MMAPRENDER = (function ()
             currentBatchRadius,
             updatedTiles );
             
-        queueLoadTextureWork( batchFlag );
+        MMAPBATCH.setPositionFlagInRadius(
+            batchFlag,
+            currentCenterTileX,
+            currentCenterTileY,
+            currentBatchRadius,
+            true );
             
         var time2 = Date.now();
+            
+        queueLoadTextureWork( batchFlag );
         
         var maximumDuration = 3;
         loadBatchTexture( maximumDuration );
         
         if ( batchTextureLoadQueueSize() == 0 )
         {
-            setBatchPositionInRadius(
-                currentBatchX,
-                currentBatchY,
-                currentBatchRadius );
+            applyPositionFlag( batchFlag );
             
             //console.log( Object.keys(visibilityFlag) );
             applyVisibilityFlag( batchFlag );
