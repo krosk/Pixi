@@ -304,7 +304,7 @@ var MMAPBATCH = (function ()
             batch.on('pointerupoutside', MMAPRENDER.onMapDisplayDragEnd);
             batch.on('pointerup', MMAPRENDER.onMapDisplayDragEnd);
             
-            //batch.cacheAsBitmap = true;
+            batch.cacheAsBitmap = true;
             
             m_mapLayer.addChild( batch );
             
@@ -312,7 +312,7 @@ var MMAPBATCH = (function ()
             
             var cTileX = public.tileXToStartTileX( tileX );
             var cTileY = public.tileYToStartTileY( tileY );
-            console.log('created container for ' + cTileX + ',' + cTileY);
+            //console.log('created container for ' + cTileX + ',' + cTileY);
         }
         return m_mapSpriteBatch[ index ];
     }
@@ -948,7 +948,12 @@ var MMAPRENDER = (function ()
             {
                 updateMapSpriteBatchPosition( batchX, batchY );
             }
-            
+            delete batchFlag[ k ];
+            if ( Date.now() - time > maximumDuration)
+            {
+                console.log('too much');
+                return;
+            }
         }
     }
     
@@ -962,7 +967,7 @@ var MMAPRENDER = (function ()
     }
     
     // hold cantor indicies
-    
+    var m_batchFlag = {};
     
     public.draw = function( updatedTiles )
     {
@@ -1004,9 +1009,6 @@ var MMAPRENDER = (function ()
         
         updateCameraVelocity();
         
-        // collection of objects indexed by cantor
-        var batchFlag = {};
-        
         if ( m_cameraCenterTileXRendered === null )
         {
             
@@ -1014,7 +1016,7 @@ var MMAPRENDER = (function ()
         else
         {
             MMAPBATCH.setVisibilityFlagInRadius(
-                batchFlag,
+                m_batchFlag,
                 m_cameraCenterTileXRendered,
                 m_cameraCenterTileYRendered,
                 m_cameraBatchRadiusRendered,
@@ -1027,24 +1029,24 @@ var MMAPRENDER = (function ()
         var currentBatchRadius = visibleBatchRadius();
         
         MMAPBATCH.setVisibilityFlagInRadius(
-            batchFlag,
+            m_batchFlag,
             currentCenterTileX,
             currentCenterTileY,
             currentBatchRadius,
             true );
             
         MMAPBATCH.setTextureFlagInNewBatch(
-            batchFlag );
+            m_batchFlag );
         
         MMAPBATCH.setTextureFlagInRadiusAndUpdatedTiles(
-            batchFlag,
+            m_batchFlag,
             currentCenterTileX,
             currentCenterTileY,
             currentBatchRadius,
             updatedTiles );
             
         MMAPBATCH.setPositionFlagInRadius(
-            batchFlag,
+            m_batchFlag,
             currentCenterTileX,
             currentCenterTileY,
             currentBatchRadius,
@@ -1052,8 +1054,8 @@ var MMAPRENDER = (function ()
             
         var time2 = Date.now();
         
-        var maximumDuration = 3;
-        processBatchFlag( maximumDuration, batchFlag );
+        var maximumDuration = 12;
+        processBatchFlag( maximumDuration, m_batchFlag );
         
         var time3 = Date.now();
         
