@@ -909,73 +909,46 @@ var MMAPRENDER = (function ()
         return topLeftBatchRadius;
     }
     
-    var applyVisibilityFlag = function( batchFlag )
-    {
-        var keys = Object.keys( batchFlag );
-        //console.log( visibilityFlagTable + ' ' + keys );
-        for ( var i in keys )
-        {
-            var k = keys[ i ];
-            var pair = mathReverseCantorPair( k );
-            var batchX = pair[ 0 ];
-            var batchY = pair[ 1 ];
-            var flag = batchFlag[ k ].visible;
-            if ( typeof flag != 'undefined' )
-            {
-                //console.log( pair + ' ' + flag + ' ' + k );
-                MMAPBATCH.setBatchVisible( batchX, batchY, flag );
-            }
-        }
-    }
-    
-    var applyPositionFlag = function ( batchFlag )
-    {
-        var keys = Object.keys( batchFlag );
-        for ( var i in keys )
-        {
-            var k = keys[ i ];
-            var pair = mathReverseCantorPair( k );
-            var batchX = pair[ 0 ];
-            var batchY = pair[ 1 ];
-            var flag = batchFlag[ k ].position
-            if ( typeof flag != 'undefined' )
-            {
-                updateMapSpriteBatchPosition( batchX, batchY );
-            }
-        }
-    }
-    
-    var loadBatchTexture = function( maximumDuration )
+    var processBatchFlag = function( maximumDuration, batchFlag )
     {
         var time = Date.now();
-        while ( m_loadBatchTextureQueue.length > 0 )
+        var keys = Object.keys( batchFlag );
+        for ( var i in keys )
         {
-            var k = m_loadBatchTextureQueue.shift();
+            var k = keys[ i ];
             var pair = mathReverseCantorPair( k );
             var batchX = pair[ 0 ];
             var batchY = pair[ 1 ];
-            // note: naive z order handled here
-            // but will not work with units
-            var tileX = MMAPBATCH.batchXToStartTileX( batchX );
-            var tileY = MMAPBATCH.batchYToStartTileY( batchY );
-            var endTileX = MMAPBATCH.batchXToEndTileX( batchX );
-            var endTileY = MMAPBATCH.batchYToEndTileY( batchY );
-            for ( var x = tileX; x < endTileX; x++ )
+            var textureFlag = batchFlag[ k ].loadTexture;
+            if ( textureFlag )
             {
-                for ( var y = tileY; y < endTileY; y++ )
+                var tileX = MMAPBATCH.batchXToStartTileX( batchX );
+                var tileY = MMAPBATCH.batchYToStartTileY( batchY );
+                var endTileX = MMAPBATCH.batchXToEndTileX( batchX );
+                var endTileY = MMAPBATCH.batchYToEndTileY( batchY );
+                for ( var x = tileX; x < endTileX; x++ )
                 {
-                    if ( MMAPDATA.isValidCoordinates( x, y ) )
+                    for ( var y = tileY; y < endTileY; y++ )
                     {
-                        var tileId = MMAPDATA.tileId( x, y );
-                        public.setTile( x, y, tileId );
+                        if ( MMAPDATA.isValidCoordinates( x, y ) )
+                        {
+                            var tileId = MMAPDATA.tileId( x, y );
+                            public.setTile( x, y, tileId );
+                        }
                     }
                 }
             }
-            var currentTime = Date.now();
-            if (currentTime > time + maximumDuration )
+            var visibleFlag = batchFlag[ k ].visible;
+            if ( typeof visibleFlag != 'undefined' )
             {
-                //break;
+                MMAPBATCH.setBatchVisible( batchX, batchY, visibleFlag );
             }
+            var positionFlag = batchFlag[ k ].position;
+            if ( typeof positionFlag != 'undefined' )
+            {
+                updateMapSpriteBatchPosition( batchX, batchY );
+            }
+            
         }
     }
     
@@ -988,36 +961,8 @@ var MMAPRENDER = (function ()
         MMAPBATCH.setBatchScale( batchX, batchY, m_cameraScaleX, m_cameraScaleY );
     }
     
-    var copyFlag = function( fromFlag, toFlag )
-    {
-        var keys = Object.keys( fromFlag );
-        for ( var i in keys )
-        {
-            var k = keys[ i ];
-            toFlag[ k ] = fromFlag[ k ].visible;
-        }
-    }
-    
     // hold cantor indicies
-    var m_loadBatchTextureQueue = [];
     
-    var queueLoadTextureWork = function( batchFlag )
-    {
-        var keys = Object.keys( batchFlag );
-        for ( var i in keys )
-        {
-            var k = keys[ i ];
-            if ( batchFlag[ k ].loadTexture )
-            {
-                m_loadBatchTextureQueue.push( k );
-            }
-        }
-    }
-    
-    var batchTextureLoadQueueSize = function()
-    {
-        return m_loadBatchTextureQueue.length;
-    }
     
     public.draw = function( updatedTiles )
     {
@@ -1079,8 +1024,6 @@ var MMAPRENDER = (function ()
         var currentCenterTileX = centerTileX();
         var currentCenterTileY = centerTileY();
         var currentRadius = visibleTileRadius();
-        var currentBatchX = MMAPBATCH.tileXToBatchX( currentCenterTileX );
-        var currentBatchY = MMAPBATCH.tileYToBatchY( currentCenterTileY );
         var currentBatchRadius = visibleBatchRadius();
         
         MMAPBATCH.setVisibilityFlagInRadius(
@@ -1108,23 +1051,9 @@ var MMAPRENDER = (function ()
             true );
             
         var time2 = Date.now();
-            
-        queueLoadTextureWork( batchFlag );
         
         var maximumDuration = 3;
-        loadBatchTexture( maximumDuration );
-        
-        if ( batchTextureLoadQueueSize() == 0 )
-        {
-            applyPositionFlag( batchFlag );
-            
-            //console.log( Object.keys(visibilityFlag) );
-            applyVisibilityFlag( batchFlag );
-        }
-        else
-        {
-            //console.log( 'postponed' );
-        }
+        processBatchFlag( maximumDuration, batchFlag );
         
         var time3 = Date.now();
         
