@@ -290,7 +290,9 @@ var MMAPBATCH = (function ()
     var getBatch = function( tileX, tileY )
     {
         var index = hashBatchIndexByTile( tileX, tileY );
-        if ( !hasBatch( tileX, tileY ) )
+        var batchX = Math.floor( tileX / BATCH_SIZE_X );
+        var batchY = Math.floor( tileY / BATCH_SIZE_Y );
+        if ( !hasBatch( batchX, batchY ) )
         {
             var batch = new PIXI.Container();
     
@@ -315,9 +317,9 @@ var MMAPBATCH = (function ()
         return m_mapSpriteBatch[ index ];
     }
     
-    var hasBatch = function( tileX, tileY )
+    var hasBatch = function( batchX, batchY )
     {
-        var i = hashBatchIndexByTile( tileX, tileY );
+        var i = hashBatchIndex( batchX, batchY );
         return !( typeof m_mapSpriteBatch[ i ] === 'undefined' || m_mapSpriteBatch[ i ] === null );
     }
     
@@ -460,21 +462,30 @@ var MMAPBATCH = (function ()
                     {
                         flag[ index ] = {};
                     }
-                    if ( typeof flag[ index ].visible === 'undefined' )
-                    {
-                        flag[ index ].visible = flagValue;
-                        flag[ index ].loadTexture = flagValue;
-                    }
-                    else if ( flag[ index ].visible != flagValue )
-                    {
-                        flag[ index ].visible = flagValue;
-                    }
+                    flag[ index ].visible = flagValue;
                 }
             }
         }
     }
     
-    public.setTextureFlagInRadius = function( flag, centerTileX, centerTileY, radius, updatedTiles )
+    public.setTextureFlagInNewBatch = function( flag  )
+    {
+        var keys = Object.keys( flag );
+        for ( var i in keys )
+        {
+            var k = keys[ i ];
+            var pair = mathReverseCantorPair( k );
+            var batchX = pair[ 0 ];
+            var batchY = pair[ 1 ];
+            var exists = hasBatch( batchX, batchY );
+            if ( !exists )
+            {
+                flag[ k ].loadTexture = true;
+            }
+        }
+    }
+    
+    public.setTextureFlagInRadiusAndUpdatedTiles = function( flag, centerTileX, centerTileY, radius, updatedTiles )
     {
         var centerBatchX = public.tileXToBatchX( centerTileX );
         var centerBatchY = public.tileYToBatchY( centerTileY );
@@ -1056,8 +1067,11 @@ var MMAPRENDER = (function ()
             currentCenterTileY,
             currentBatchRadius,
             true );
+            
+        MMAPBATCH.setTextureFlagInNewBatch(
+            batchFlag );
         
-        MMAPBATCH.setTextureFlagInRadius(
+        MMAPBATCH.setTextureFlagInRadiusAndUpdatedTiles(
             batchFlag,
             currentCenterTileX,
             currentCenterTileY,
