@@ -1019,6 +1019,8 @@ var MMAPRENDER = (function ()
         // so maybe one should perform
         // texture loading with a default transparent one
         // then replace it when needed?
+        // 4/ container creation could also be in cause,
+        // consider pooling?
         
         var time1 = Date.now();
         
@@ -1086,6 +1088,7 @@ var MMAPRENDER = (function ()
         
         var time3 = Date.now();
         
+        // checking whether it is texture load
         if ( time3 - time2 > 16 )
         {
             console.log(time3 - time2 + 'f');
