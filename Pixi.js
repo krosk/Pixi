@@ -312,7 +312,7 @@ var MMAPBATCH = (function ()
             
             var cTileX = public.tileXToStartTileX( tileX );
             var cTileY = public.tileYToStartTileY( tileY );
-            //console.log('created container for ' + cTileX + ',' + cTileY);
+            console.log('created container for ' + cTileX + ',' + cTileY);
         }
         return m_mapSpriteBatch[ index ];
     }
@@ -913,9 +913,35 @@ var MMAPRENDER = (function ()
     {
         var time = Date.now();
         var keys = Object.keys( batchFlag );
+        var count = 0;
+        // pre order
+        var firstKeys = [];
+        var otherKeys = [];
         for ( var i in keys )
         {
             var k = keys[ i ];
+            var pair = mathReverseCantorPair( k );
+            var batchX = pair[ 0 ];
+            var batchY = pair[ 1 ];
+            var textureFlag = batchFlag[ k ].loadTexture;
+            if ( textureFlag )
+            {
+                otherKeys.push( k );
+            }
+            else
+            {
+                firstKeys.push( k );
+            }
+        }
+        var orderedKeys = firstKeys;
+        for ( var i in otherKeys )
+        {
+            orderedKeys.push( otherKeys[ i ] );
+            break; // process only one texture load per call
+        }
+        for ( var i in orderedKeys )
+        {
+            var k = orderedKeys[ i ];
             var pair = mathReverseCantorPair( k );
             var batchX = pair[ 0 ];
             var batchY = pair[ 1 ];
@@ -949,12 +975,14 @@ var MMAPRENDER = (function ()
                 updateMapSpriteBatchPosition( batchX, batchY );
             }
             delete batchFlag[ k ];
+            count++;
             if ( Date.now() - time > maximumDuration)
             {
-                console.log('too much');
+                console.log('too much ' + count + '/' + keys.length );
                 return;
             }
         }
+        
     }
     
     var updateMapSpriteBatchPosition = function( batchX, batchY )
@@ -1054,7 +1082,7 @@ var MMAPRENDER = (function ()
             
         var time2 = Date.now();
         
-        var maximumDuration = 12;
+        var maximumDuration = 10;
         processBatchFlag( maximumDuration, m_batchFlag );
         
         var time3 = Date.now();
