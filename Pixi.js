@@ -257,8 +257,8 @@ var MMAPBATCH = (function ()
     var m_mapSprite = [];
     var m_mapSpriteId = [];
     
-    var BATCH_SIZE_X = 10;
-    var BATCH_SIZE_Y = 10;
+    var BATCH_SIZE_X = 8;
+    var BATCH_SIZE_Y = 8;
     
     public.initialize = function()
     {
@@ -882,8 +882,10 @@ var MMAPRENDER = (function ()
             var position2 = m_touchData[1].getLocalPosition( _this.parent );
             var newDistance = getDistanceBetween( pointerScreen, position2 );
             var ratio = newDistance / m_startDistance;
-            m_cameraScaleX = m_startScaleX * ratio;
-            m_cameraScaleY = m_startScaleY * ratio;
+            var cameraScaleX = m_startScaleX * ratio;
+            var cameraScaleY = m_startScaleY * ratio;
+            
+            public.setCameraScale( cameraScaleX, cameraScaleY );
         }
         
         // camera moves according to differential movement of pointer
@@ -897,8 +899,9 @@ var MMAPRENDER = (function ()
     {
         var cameraMapX = m_cameraMapX + m_cameraMapVelocityX;
         var cameraMapY = m_cameraMapY + m_cameraMapVelocityY;
-        m_cameraScaleX += m_cameraZoomVelocity;
-        m_cameraScaleY += m_cameraZoomVelocity;
+        var cameraScaleX = m_cameraScaleX + m_cameraZoomVelocity;
+        var cameraScaleY = m_cameraScaleY + m_cameraZoomVelocity;
+        public.setCameraScale( cameraScaleX, cameraScaleY );
         public.setCameraMap( cameraMapX, cameraMapY );
     }
     
@@ -919,6 +922,20 @@ var MMAPRENDER = (function ()
             tileY + ') b(' +
             MMAPBATCH.tileXToBatchX( tileX ) + ',' +
             MMAPBATCH.tileYToBatchY( tileY ) + ')';
+    }
+    
+    public.setCameraScale = function( scaleX, scaleY )
+    {
+        m_cameraScaleX = scaleX;
+        if ( m_cameraScaleX < 0.2 )
+        {
+            m_cameraScaleX = 0.2;
+        }
+        m_cameraScaleY = scaleY;
+        if ( m_cameraScaleY < 0.2 )
+        {
+            m_cameraScaleY = 0.2;
+        }
     }
     
     public.setCameraMapVelocity = function( mapVelocityX, mapVelocityY )
