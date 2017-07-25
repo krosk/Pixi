@@ -680,15 +680,15 @@ var MMAPUI = (function ()
     }
     var UIZoomOutCameraAction = function()
     {
-        MMAPRENDER.setCameraMapZoomVelocity( -0.01 );
+        MMAPRENDER.setCameraScaleVelocity( -0.01 );
     }
     var UIZoomInCameraAction = function()
     {
-        MMAPRENDER.setCameraMapZoomVelocity( 0.01 );
+        MMAPRENDER.setCameraScaleVelocity( 0.01 );
     }
     var UIStopZoomCameraAction = function()
     {
-        MMAPRENDER.setCameraMapZoomVelocity( 0 );
+        MMAPRENDER.setCameraScaleVelocity( 0 );
     }
     
     return public;
@@ -725,7 +725,7 @@ var MMAPRENDER = (function ()
     
     var m_cameraMapVelocityX = 0;
     var m_cameraMapVelocityY = 0;
-    var m_cameraZoomVelocity = 0;
+    var m_cameraScaleVelocity = 0;
     
     var m_cameraMapXRendered = 0;
     var m_cameraMapYRendered = 0;
@@ -899,8 +899,8 @@ var MMAPRENDER = (function ()
     {
         var cameraMapX = m_cameraMapX + m_cameraMapVelocityX;
         var cameraMapY = m_cameraMapY + m_cameraMapVelocityY;
-        var cameraScaleX = m_cameraScaleX + m_cameraZoomVelocity;
-        var cameraScaleY = m_cameraScaleY + m_cameraZoomVelocity;
+        var cameraScaleX = m_cameraScaleX + m_cameraScaleVelocity;
+        var cameraScaleY = m_cameraScaleY + m_cameraScaleVelocity;
         public.setCameraScale( cameraScaleX, cameraScaleY );
         public.setCameraMap( cameraMapX, cameraMapY );
     }
@@ -944,9 +944,9 @@ var MMAPRENDER = (function ()
         m_cameraMapVelocityY = mapVelocityY;
     }
     
-    public.setCameraMapZoomVelocity = function( zoomVelocity )
+    public.setCameraScaleVelocity = function( scaleVelocity )
     {
-        m_cameraZoomVelocity = zoomVelocity;
+        m_cameraScaleVelocity = scaleVelocity;
     }
     
     var centerTileX = function()
