@@ -897,8 +897,8 @@ var MMAPRENDER = (function ()
     
     var updateCameraVelocity = function()
     {
-        var cameraMapX = m_cameraMapX + m_cameraMapVelocityX;
-        var cameraMapY = m_cameraMapY + m_cameraMapVelocityY;
+        var cameraMapX = m_cameraMapX + m_cameraMapVelocityX / m_cameraScaleX
+        var cameraMapY = m_cameraMapY + m_cameraMapVelocityY / m_cameraScaleY
         var cameraScaleX = m_cameraScaleX + m_cameraScaleVelocity;
         var cameraScaleY = m_cameraScaleY + m_cameraScaleVelocity;
         public.setCameraScale( cameraScaleX, cameraScaleY );
