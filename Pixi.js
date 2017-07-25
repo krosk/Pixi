@@ -657,6 +657,7 @@ var MMAPUI = (function ()
     var UIResetCameraAction = function()
     {
         MMAPRENDER.setCameraMap( 0, 0 );
+        MMAPRENDER.setCameraScale( 1, 1 );
     }
     var UIUpCameraAction = function()
     {
