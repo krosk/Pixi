@@ -257,8 +257,8 @@ var MMAPBATCH = (function ()
     var m_mapSprite = [];
     var m_mapSpriteId = [];
     
-    var BATCH_SIZE_X = 5;
-    var BATCH_SIZE_Y = 5;
+    var BATCH_SIZE_X = 10;
+    var BATCH_SIZE_Y = 10;
     
     public.initialize = function()
     {
@@ -308,11 +308,13 @@ var MMAPBATCH = (function ()
             
             m_mapLayer.addChild( batch );
             
+            var batchCount = m_mapLayer.children.length;
+            
             m_mapSpriteBatch[ index ] = batch;
             
             var cTileX = public.tileXToStartTileX( tileX );
             var cTileY = public.tileYToStartTileY( tileY );
-            console.log('created container for ' + cTileX + ',' + cTileY);
+            console.log('created container for ' + cTileX + ',' + cTileY + ',' + batchCount);
         }
         return m_mapSpriteBatch[ index ];
     }
@@ -567,6 +569,52 @@ var MMAPUI = (function ()
         sprite.on('pointertap', UIResetCameraAction);
     }
     
+    var addZoomOutCameraSprite = function()
+    {
+        var textureName = GetTextureName( 2 );
+        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
+        var sprite = new PIXI.Sprite( tileTextureCache );
+            
+        sprite.x = viewWidth() - sprite.width;
+        sprite.y = 40;
+        sprite.scale.x = 0.3;
+        sprite.scale.y = 0.3;
+        sprite.visible = true;
+        sprite.interactive = true;
+        
+        m_uiLayer.addChild( sprite );
+        
+        sprite.on('pointerdown', UIZoomOutCameraAction);
+        sprite.on('pointerup', UIStopZoomCameraAction);
+        sprite.on('pointerupoutside', UIStopZoomCameraAction);
+    }
+    
+    var addZoomInCameraSprite = function()
+    {
+        var textureName = GetTextureName( 2 );
+        var tileTextureCache = PIXI.utils.TextureCache[ textureName ];
+        var sprite = new PIXI.Sprite( tileTextureCache );
+            
+        sprite.x = viewWidth() - sprite.width;
+        sprite.y = 0;
+        sprite.scale.x = 0.3;
+        sprite.scale.y = 0.3;
+        sprite.visible = true;
+        sprite.interactive = true;
+        
+        m_uiLayer.addChild( sprite );
+        
+        sprite.on('pointerdown', UIZoomInCameraAction);
+        sprite.on('pointerup', UIStopZoomCameraAction);
+        sprite.on('pointerupoutside', UIStopZoomCameraAction);
+    }
+    
+    var addZoomCameraSprite = function()
+    {
+        addZoomInCameraSprite();
+        addZoomOutCameraSprite();
+    }
+    
     var addArrowCameraSprite = function( x, y, callbackAction )
     {
         var textureName = GetTextureName( 1 );
@@ -601,6 +649,7 @@ var MMAPUI = (function ()
         
         addResetCameraSprite();
         addArrowCamera();
+        addZoomCameraSprite();
         
         g_app.stage.addChild( m_uiLayer );
     }
@@ -628,6 +677,18 @@ var MMAPUI = (function ()
     var UIStopCameraAction = function()
     {
         MMAPRENDER.setCameraMapVelocity( 0, 0 );
+    }
+    var UIZoomOutCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapZoomVelocity( -0.01 );
+    }
+    var UIZoomInCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapZoomVelocity( 0.01 );
+    }
+    var UIStopZoomCameraAction = function()
+    {
+        MMAPRENDER.setCameraMapZoomVelocity( 0 );
     }
     
     return public;
@@ -664,6 +725,7 @@ var MMAPRENDER = (function ()
     
     var m_cameraMapVelocityX = 0;
     var m_cameraMapVelocityY = 0;
+    var m_cameraZoomVelocity = 0;
     
     var m_cameraMapXRendered = 0;
     var m_cameraMapYRendered = 0;
@@ -835,6 +897,8 @@ var MMAPRENDER = (function ()
     {
         var cameraMapX = m_cameraMapX + m_cameraMapVelocityX;
         var cameraMapY = m_cameraMapY + m_cameraMapVelocityY;
+        m_cameraScaleX += m_cameraZoomVelocity;
+        m_cameraScaleY += m_cameraZoomVelocity;
         public.setCameraMap( cameraMapX, cameraMapY );
     }
     
@@ -861,6 +925,11 @@ var MMAPRENDER = (function ()
     {
         m_cameraMapVelocityX = mapVelocityX;
         m_cameraMapVelocityY = mapVelocityY;
+    }
+    
+    public.setCameraMapZoomVelocity = function( zoomVelocity )
+    {
+        m_cameraZoomVelocity = zoomVelocity;
     }
     
     var centerTileX = function()
