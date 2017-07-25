@@ -257,8 +257,8 @@ var MMAPBATCH = (function ()
     var m_mapSprite = [];
     var m_mapSpriteId = [];
     
-    var BATCH_SIZE_X = 8;
-    var BATCH_SIZE_Y = 8;
+    var BATCH_SIZE_X = 4;
+    var BATCH_SIZE_Y = 4;
     
     public.initialize = function()
     {
